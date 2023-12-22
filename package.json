@@ -1,0 +1,53 @@
+{
+  "name": "@bebrasmell/zod-mongoose",
+  "version": "1.0.0",
+  "description": "A library that allows you to generate mongoose schemas from zod objects.",
+  "scripts": {
+    "build": "tsup",
+    "test": "ts-node --esm ./src/test/test.ts"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "private": false,
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "zod",
+    "mongoose",
+    "schema",
+    "validation",
+    "typescript",
+    "type",
+    "types",
+    "type-safe",
+    "validation",
+    "mongodb",
+    "mongo",
+    "database",
+    "db",
+    "orm",
+    "odm",
+    "document"
+  ],
+  "author": "bebrasmell",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bebrasmell/zod-mongoose"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.1"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.3",
+    "zod": "^3.22.4"
+  }
+}
