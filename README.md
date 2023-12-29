@@ -1,11 +1,15 @@
 # Zod to mongoose schema converter
 
+[![npm version](https://badge.fury.io/js/%40zodyac%2Fmongoose.svg)](https://badge.fury.io/js/%40zodyac%2Fmongoose)
+
+> A part of [Zodyac](https://npmjs.com/org/zodyac) project.
+
 This package provides a function to convert [zod](https://www.npmjs.com/package/zod) object to [mongoose](https://www.npmjs.com/package/mongoose) schema.
 
 ## Installation
 
 ```bash
-npm i @bebrasmell/zod-mongoose
+npm i @zodyac/mongoose
 ```
 
 ## Usage
@@ -14,7 +18,7 @@ First, create your zod schema:
 
 ```typescript
 import { z } from 'zod';
-import { zId } from '@bebrasmell/zod-mongoose';
+import { zId } from '@zodyac/mongoose';
 
 const zUser = z.object({
   name: z.string().min(3).max(255),
@@ -37,7 +41,7 @@ const zUser = z.object({
 Then, convert it to mongoose schema and connect model:
 
 ```typescript
-import { zodSchema } from '@bebrasmell/zod-mongoose';
+import { zodSchema } from '@zodyac/mongoose';
 import { model } from 'mongoose';
 
 const schema = zodSchema(zDoc);
@@ -85,7 +89,7 @@ console.log(schema.obj);
 If you want to get raw object from zod schema to modify it, you can use ```zodSchemaRaw``` function:
 
 ```typescript
-import { zodSchemaRaw } from '@bebrasmell/zod-mongoose';
+import { zodSchemaRaw } from '@zodyac/mongoose';
 import { model, Schema } from 'mongoose';
 
 const schema = zodSchemaRaw(zDoc);
