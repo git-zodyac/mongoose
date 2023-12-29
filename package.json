@@ -1,6 +1,6 @@
 {
   "name": "@zodyac/mongoose",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A library that allows you to generate mongoose schemas from zod objects.",
   "scripts": {
     "build": "tsup",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bebrasmell/zod-mongoose"
+    "url": "https://github.com/git-zodyac/mongoose"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.15.0",
