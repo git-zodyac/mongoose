@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/%40zodyac%2Fmongoose.svg)](https://badge.fury.io/js/%40zodyac%2Fmongoose)
 
-> A part of [Zodyac](https://npmjs.com/org/zodyac) project.
+> A part of [Zodyac](https://npmjs.com/org/zodyac) project, but you are absolutely welcome use it separately 😘.
 
 This package provides a function to convert [zod](https://www.npmjs.com/package/zod) object to [mongoose](https://www.npmjs.com/package/mongoose) schema.
 
