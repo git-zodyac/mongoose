@@ -24,7 +24,7 @@ import {
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchema } from '@bebrasmell/zod-mongoose';
+ * import { zId, zodSchema } from '@zodyac/mongoose';
  * import { model } from 'mongoose';
  * import { z } from 'zod';
  *
@@ -60,7 +60,7 @@ export function zodSchema<T extends ZodRawShape>(
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchemaRaw } from '@bebrasmell/zod-mongoose';
+ * import { zId, zodSchemaRaw } from '@zodyac/mongoose';
  * import { model, Schema } from 'mongoose';
  * import { z } from 'zod';
  *
@@ -99,7 +99,7 @@ export function zodSchemaRaw<T extends ZodRawShape>(
  * Can also be used for string validation for ObjectId.
  *
  * @example
- * import { zId } from '@bebrasmell/zod-mongoose';
+ * import { zId } from '@zodyac/mongoose';
  * import { z } from 'zod';
  *
  * const zUser = z.object({
