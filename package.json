@@ -1,5 +1,5 @@
 {
-  "name": "@zodyac/mongoose",
+  "name": "@zodyac/zod-mongoose",
   "version": "1.0.6",
   "description": "A library that allows you to generate mongoose schemas from zod objects.",
   "scripts": {
@@ -34,6 +34,7 @@
   ],
   "author": "bebrasmell",
   "license": "MIT",
+  "homepage": "https://zodyac.dev/toolbox/zod-mongoose",
   "repository": {
     "type": "git",
     "url": "https://github.com/git-zodyac/mongoose"
