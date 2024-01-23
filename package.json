@@ -1,6 +1,6 @@
 {
   "name": "@zodyac/zod-mongoose",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A library that allows you to generate mongoose schemas from zod objects.",
   "scripts": {
     "build": "tsup",
