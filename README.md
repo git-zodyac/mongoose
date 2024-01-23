@@ -9,7 +9,7 @@ This package provides a function to convert [zod](https://www.npmjs.com/package/
 ## Installation
 
 ```bash
-npm i @zodyac/mongoose
+npm i @zodyac/zod-mongoose
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ First, create your zod schema:
 
 ```typescript
 import { z } from 'zod';
-import { zId } from '@zodyac/mongoose';
+import { zId } from '@zodyac/zod-mongoose';
 
 const zUser = z.object({
   name: z.string().min(3).max(255),
@@ -41,7 +41,7 @@ const zUser = z.object({
 Then, convert it to mongoose schema and connect model:
 
 ```typescript
-import { zodSchema } from '@zodyac/mongoose';
+import { zodSchema } from '@zodyac/zod-mongoose';
 import { model } from 'mongoose';
 
 const schema = zodSchema(zDoc);
@@ -89,7 +89,7 @@ console.log(schema.obj);
 If you want to get raw object from zod schema to modify it, you can use ```zodSchemaRaw``` function:
 
 ```typescript
-import { zodSchemaRaw } from '@zodyac/mongoose';
+import { zodSchemaRaw } from '@zodyac/zod-mongoose';
 import { model, Schema } from 'mongoose';
 
 const schema = zodSchemaRaw(zDoc);
