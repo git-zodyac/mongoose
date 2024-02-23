@@ -18,7 +18,7 @@ First, create your zod schema:
 
 ```typescript
 import { z } from 'zod';
-import { zId } from '@zodyac/zod-mongoose';
+import { zId, zUUID } from '@zodyac/zod-mongoose';
 
 const zUser = z.object({
   name: z.string().min(3).max(255),
@@ -26,6 +26,7 @@ const zUser = z.object({
   active: z.boolean().default(false),
   access: z.enum(['admin', 'user']).default('user'),
   companyId: zId.describe('ObjectId:Company'),
+  wearable: zUUID.describe('UUID:Wearable'),
   address: z.object({
     street: z.string(),
     city: z.string(),
@@ -65,10 +66,12 @@ userModel.find({ name: 'John' });
 - ✅ ObjectId
 - ✅ ObjectId references
 - ✅ ZodAny as SchemaTypes.Mixed
+- 🔧 UUID (experimental)
+- 🔧 UUID references (experimental)
 - ❗️ Unions (not supported by mongoose)
 - ❗️ Intersection (not supported by mongoose)
 - ❗️ Indexes (not supported by zod)
-- ⏳ Number enums (comming soon)
+- ❗️ Number enums (comming soon)
 - ⏳ Regex validation (comming soon)
 - ⏳ Custom validators (comming soon)
 - ⏳ instanceOf (comming soon)
