@@ -1,5 +1,5 @@
-import { zId, zodSchema } from '../index.js';
-import { z } from 'zod';
+import { zId, zUUID, zodSchema } from "../index.js";
+import { z } from "zod";
 
 const subdoc = z.object({
   title: z.string().min(3).max(255),
@@ -11,12 +11,13 @@ const schema = z.object({
   name: z.string().min(3).max(255),
   age: z.number().min(18).max(100),
   active: z.boolean().default(false),
-  access: z.enum(['admin', 'user']).default('user'),
-  companyId: zId.describe('ObjectId:Company'),
+  access: z.enum(["admin", "user"]).default("user"),
+  wearable: zUUID.describe("UUID:Wearable"),
+  companyId: zId.describe("ObjectId:Company"),
   address: z.object({
     street: z.string(),
     city: z.string(),
-    state: z.enum(['CA', 'NY', 'TX']),
+    state: z.enum(["CA", "NY", "TX"]),
   }),
   tags: z.array(z.string().refine((v) => v.length > 0)),
   createdAt: z.date(),

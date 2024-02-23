@@ -1,4 +1,4 @@
-import { SchemaTypes, Types } from 'mongoose';
+import { SchemaTypes, Types } from "mongoose";
 
 export namespace zm {
   export interface _Field<T> {
@@ -37,6 +37,11 @@ export namespace zm {
     ref?: string;
   }
 
+  export interface mUUID extends _Field<Types.UUID> {
+    type: typeof SchemaTypes.UUID;
+    ref?: string;
+  }
+
   export type mArray<K> = [_Field<K[]>];
 
   export interface mMixed<T> extends _Field<T> {
@@ -44,11 +49,17 @@ export namespace zm {
   }
 
   export type mField =
+    // Primitives
     | mString
     | mNumber
     | mBoolean
     | mDate
+
+    // IDs
     | mObjectId
+    | mUUID
+
+    // Mixed types
     | mMixed<unknown>
     | mArray<unknown>
     | _Schema<unknown>;

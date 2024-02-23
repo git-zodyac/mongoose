@@ -1,5 +1,5 @@
-import { zm } from './mongoose.types.js';
-import { Schema, SchemaTypes, Types, isValidObjectId } from 'mongoose';
+import { zm } from "./mongoose.types.js";
+import { Schema, SchemaTypes, Types, isValidObjectId } from "mongoose";
 import {
   ZodAny,
   ZodArray,
@@ -16,7 +16,7 @@ import {
   ZodType,
   ZodUnion,
   z,
-} from 'zod';
+} from "zod";
 
 /**
  * Converts a Zod schema to a Mongoose schema
@@ -24,7 +24,7 @@ import {
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchema } from '@zodyac/mongoose';
+ * import { zId, zodSchema } from '@zodyac/zod-mongoose';
  * import { model } from 'mongoose';
  * import { z } from 'zod';
  *
@@ -49,9 +49,9 @@ import {
  */
 export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
-): Schema<T> {
+): Schema<z.infer<typeof schema>> {
   const definition = parseObject(schema);
-  return new Schema<T>(definition);
+  return new Schema<z.infer<typeof schema>>(definition);
 }
 
 /**
@@ -60,7 +60,7 @@ export function zodSchema<T extends ZodRawShape>(
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchemaRaw } from '@zodyac/mongoose';
+ * import { zId, zodSchemaRaw } from '@zodyac/zod-mongoose';
  * import { model, Schema } from 'mongoose';
  * import { z } from 'zod';
  *
@@ -99,7 +99,7 @@ export function zodSchemaRaw<T extends ZodRawShape>(
  * Can also be used for string validation for ObjectId.
  *
  * @example
- * import { zId } from '@zodyac/mongoose';
+ * import { zId } from '@zodyac/zod-mongoose';
  * import { z } from 'zod';
  *
  * const zUser = z.object({
@@ -108,9 +108,38 @@ export function zodSchemaRaw<T extends ZodRawShape>(
  * });
  */
 export const zId = z
-  .instanceof(Types.ObjectId)
-  .describe('ObjectId')
-  .or(z.string().refine((v) => isValidObjectId(v), { message: 'Invalid Id' }));
+  .string()
+  .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
+  .or(z.instanceof(Types.ObjectId).describe("ObjectId"));
+
+/**
+ * Zod UUID type (experimental)
+ *
+ * Use with caution.
+ *
+ * You can provide a reference to a model to enable population via zod .describe() method.
+ * Description must start with 'UUID:' followed by the collection name.
+ *
+ * Can also be used for string validation for UUID.
+ *
+ * @warning
+ * This is an expreimental feature.
+ * UUIDs in Mongoose are a bit of a pain.
+ * Mongoose uses version 4 UUIDs, which may not be compatible with the UUIDs used in other languages, e.g. C#.
+ *
+ * @example
+ * import { zUUID, zodSchema } from '@zodyac/zod-mongoose';
+ * import { z } from 'zod';
+ *
+ * const zUser = z.object({
+ *   name: z.string().min(3).max(255),
+ *   wearable: zUUID.describe('UUID:Wearable'),
+ * });
+ */
+export const zUUID = z
+  .string()
+  .uuid({ message: "Invalid UUID" })
+  .or(z.instanceof(Types.UUID).describe("UUID"));
 
 // Helpers
 function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
@@ -187,10 +216,16 @@ function parseField<T>(
     return parseField(field._def.innerType, false, undefined);
   }
 
-  if (field.description?.startsWith('ObjectId')) {
-    const ref = field.description.split(':')[1];
+  if (field.description?.startsWith("ObjectId")) {
+    const ref = field.description.split(":")[1];
     if (ref) return parseObjectIdRef(required, ref);
     return parseObjectId(required);
+  }
+
+  if (field.description?.startsWith("UUID")) {
+    const ref = field.description.split(":")[1];
+    if (ref) return parseUUIDRef(required, ref);
+    return parseUUID(required);
   }
 
   if (field instanceof ZodUnion) {
@@ -202,7 +237,7 @@ function parseField<T>(
   }
 
   if (field instanceof ZodEffects) {
-    if (field._def.effect.type === 'refinement') {
+    if (field._def.effect.type === "refinement") {
       return parseField(
         field._def.schema,
         required,
@@ -310,6 +345,21 @@ function parseObjectId(required: boolean = true): zm.mObjectId {
 function parseObjectIdRef(required: boolean = true, ref: string): zm.mObjectId {
   return {
     type: SchemaTypes.ObjectId,
+    ref,
+    required,
+  };
+}
+
+function parseUUID(required: boolean = true): zm.mUUID {
+  return {
+    type: SchemaTypes.UUID,
+    required,
+  };
+}
+
+function parseUUIDRef(required: boolean = true, ref: string): zm.mUUID {
+  return {
+    type: SchemaTypes.UUID,
     ref,
     required,
   };
