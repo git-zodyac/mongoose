@@ -8,6 +8,7 @@ import {
   ZodDefault,
   ZodEffects,
   ZodEnum,
+  ZodNullable,
   ZodNumber,
   ZodObject,
   ZodOptional,
@@ -214,6 +215,10 @@ function parseField<T>(
 
   if (field instanceof ZodOptional) {
     return parseField(field._def.innerType, false, undefined);
+  }
+
+  if (field instanceof ZodNullable) {
+    return parseField(field._def.innerType, false, def || null);
   }
 
   if (field.description?.startsWith("ObjectId")) {
