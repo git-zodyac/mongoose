@@ -381,5 +381,4 @@ function parseMixed(
   };
 }
 
-export { zm };
 export default zodSchema;
