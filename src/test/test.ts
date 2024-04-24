@@ -15,7 +15,7 @@ const schema = z.object({
   wearable: zUUID.describe("UUID:Wearable"),
   companyId: zId.describe("ObjectId:Company"),
   address: z.object({
-    street: z.string(),
+    street: z.string().describe("unique"),
     city: z.string(),
     state: z.enum(["CA", "NY", "TX"]),
   }),

@@ -12,6 +12,7 @@ export namespace zm {
 
   export interface mString extends _Field<string> {
     type: StringConstructor;
+    unique: boolean;
     enum?: string[];
     match?: RegExp;
     minLength?: number;
@@ -20,6 +21,7 @@ export namespace zm {
 
   export interface mNumber extends _Field<number> {
     type: NumberConstructor;
+    unique: boolean;
     min?: number;
     max?: number;
   }

@@ -176,6 +176,7 @@ function parseField<T>(
       field,
       required,
       def as number,
+      field.description?.toLocaleLowerCase() === "unique",
       // validate as (v: number) => boolean,
     );
   }
@@ -185,6 +186,7 @@ function parseField<T>(
       field,
       required,
       def as string,
+      field.description?.toLocaleLowerCase() === "unique",
       // validate as (v: string) => boolean,
     );
   }
@@ -258,6 +260,7 @@ function parseNumber(
   field: ZodNumber,
   required: boolean = true,
   def?: number,
+  unique: boolean = false,
   validate?: (v: number) => boolean,
 ): zm.mNumber {
   if (validate) {
@@ -270,6 +273,7 @@ function parseNumber(
         validate,
       },
       required,
+      unique,
     };
   }
 
@@ -279,6 +283,7 @@ function parseNumber(
     min: field.minValue ?? undefined,
     max: field.maxValue ?? undefined,
     required,
+    unique,
   };
 }
 
@@ -286,6 +291,7 @@ function parseString(
   field: ZodString,
   required: boolean = true,
   def?: string,
+  unique: boolean = false,
   validate?: ((v: string) => boolean) | undefined,
 ): zm.mString {
   if (validate) {
@@ -298,6 +304,7 @@ function parseString(
       validation: {
         validate,
       },
+      unique,
     };
   }
 
@@ -308,6 +315,7 @@ function parseString(
     required,
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
+    unique,
   };
 }
 
@@ -321,6 +329,7 @@ function parseEnum(
     default: def,
     enum: values,
     required,
+    unique: false,
   };
 }
 
