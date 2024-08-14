@@ -1,0 +1,44 @@
+name: Create badges
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  create-badge:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Setup node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      # Configure Git
+      - name: Git configuration
+        run: |
+          git config --global user.email "137602160+bebrasmell@users.noreply.github.com>"
+          git config --global user.name "Zak (GitHub Actions)"
+
+      # Install deps
+      - name: Install dependencies
+        run: yarn install
+
+      # Run tests
+      - name: Test
+        run: yarn test:badges
+
+      # Commit changes
+      - name: Commit coverage badge changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add "badges/coverage.svg"
+          git commit -m "chore: update badge" || exit 0
+          git push origin || exit 0

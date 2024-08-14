@@ -1,0 +1,3 @@
+{"total": {"lines":{"total":69,"covered":55,"skipped":0,"pct":79.71},"statements":{"total":75,"covered":61,"skipped":0,"pct":81.33},"functions":{"total":15,"covered":12,"skipped":0,"pct":80},"branches":{"total":54,"covered":30,"skipped":0,"pct":55.55},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
+,"/Users/zak/opensource/mongoose/src/index.ts": {"lines":{"total":69,"covered":55,"skipped":0,"pct":79.71},"functions":{"total":15,"covered":12,"skipped":0,"pct":80},"statements":{"total":75,"covered":61,"skipped":0,"pct":81.33},"branches":{"total":54,"covered":30,"skipped":0,"pct":55.55}}
+}

@@ -1,4 +1,3 @@
-import { zm } from "./mongoose.types.js";
 import { Schema, SchemaTypes, Types, isValidObjectId } from "mongoose";
 import {
   ZodAny,
@@ -12,12 +11,13 @@ import {
   ZodNumber,
   ZodObject,
   ZodOptional,
-  ZodRawShape,
+  type ZodRawShape,
   ZodString,
-  ZodType,
+  type ZodType,
   ZodUnion,
   z,
 } from "zod";
+import type { zm } from "./mongoose.types.js";
 
 /**
  * Converts a Zod schema to a Mongoose schema
@@ -85,9 +85,7 @@ export function zodSchema<T extends ZodRawShape>(
  * const schema = new Schema(rawSchema);
  * const userModel = model('User', schema);
  */
-export function zodSchemaRaw<T extends ZodRawShape>(
-  schema: ZodObject<T>,
-): zm._Schema<T> {
+export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._Schema<T> {
   return parseObject(schema);
 }
 
@@ -144,7 +142,6 @@ export const zUUID = z
 
 // Helpers
 function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const object: any = {};
   for (const [key, field] of Object.entries(obj.shape)) {
     if (field instanceof ZodObject) {
@@ -152,10 +149,7 @@ function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
     } else {
       const f = parseField(field);
       if (f) object[key] = f;
-      else
-        console.error(
-          `Key ${key}: Unsupported field type: ${field.constructor}`,
-        );
+      else console.error(`Key ${key}: Unsupported field type: ${field.constructor}`);
     }
   }
   return object;
@@ -208,11 +202,7 @@ function parseField<T>(
   }
 
   if (field instanceof ZodDefault) {
-    return parseField(
-      field._def.innerType,
-      required,
-      field._def.defaultValue(),
-    );
+    return parseField(field._def.innerType, required, field._def.defaultValue());
   }
 
   if (field instanceof ZodOptional) {
@@ -258,9 +248,9 @@ function parseField<T>(
 
 function parseNumber(
   field: ZodNumber,
-  required: boolean = true,
+  required = true,
   def?: number,
-  unique: boolean = false,
+  unique = false,
   validate?: (v: number) => boolean,
 ): zm.mNumber {
   if (validate) {
@@ -289,9 +279,9 @@ function parseNumber(
 
 function parseString(
   field: ZodString,
-  required: boolean = true,
+  required = true,
   def?: string,
-  unique: boolean = false,
+  unique = false,
   validate?: ((v: string) => boolean) | undefined,
 ): zm.mString {
   if (validate) {
@@ -319,11 +309,7 @@ function parseString(
   };
 }
 
-function parseEnum(
-  values: string[],
-  required: boolean = true,
-  def?: string,
-): zm.mString {
+function parseEnum(values: string[], required = true, def?: string): zm.mString {
   return {
     type: String,
     default: def,
@@ -333,7 +319,7 @@ function parseEnum(
   };
 }
 
-function parseBoolean(required: boolean = true, def?: boolean): zm.mBoolean {
+function parseBoolean(required = true, def?: boolean): zm.mBoolean {
   return {
     type: Boolean,
     default: def,
@@ -341,7 +327,7 @@ function parseBoolean(required: boolean = true, def?: boolean): zm.mBoolean {
   };
 }
 
-function parseDate(required: boolean = true, def?: Date): zm.mDate {
+function parseDate(required = true, def?: Date): zm.mDate {
   return {
     type: Date,
     default: def,
@@ -349,14 +335,15 @@ function parseDate(required: boolean = true, def?: Date): zm.mDate {
   };
 }
 
-function parseObjectId(required: boolean = true): zm.mObjectId {
+function parseObjectId(required = true): zm.mObjectId {
   return {
     type: SchemaTypes.ObjectId,
     required,
   };
 }
 
-function parseObjectIdRef(required: boolean = true, ref: string): zm.mObjectId {
+// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
+function parseObjectIdRef(required = true, ref: string): zm.mObjectId {
   return {
     type: SchemaTypes.ObjectId,
     ref,
@@ -364,14 +351,15 @@ function parseObjectIdRef(required: boolean = true, ref: string): zm.mObjectId {
   };
 }
 
-function parseUUID(required: boolean = true): zm.mUUID {
+function parseUUID(required = true): zm.mUUID {
   return {
     type: SchemaTypes.UUID,
     required,
   };
 }
 
-function parseUUIDRef(required: boolean = true, ref: string): zm.mUUID {
+// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
+function parseUUIDRef(required = true, ref: string): zm.mUUID {
   return {
     type: SchemaTypes.UUID,
     ref,
@@ -379,10 +367,7 @@ function parseUUIDRef(required: boolean = true, ref: string): zm.mUUID {
   };
 }
 
-function parseMixed(
-  required: boolean = true,
-  def?: unknown,
-): zm.mMixed<unknown> {
+function parseMixed(required = true, def?: unknown): zm.mMixed<unknown> {
   return {
     type: SchemaTypes.Mixed,
     default: def,

@@ -1,0 +1,34 @@
+name: Test Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - branchname
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Setup node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      # Install deps
+      - name: Install dependencies
+        run: yarn install
+
+      # Run tests
+      - name: Test
+        run: yarn test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint
+        uses: ./lint.yaml
