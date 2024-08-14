@@ -1,6 +1,8 @@
 # Zod to mongoose schema converter
-
-[![npm version](https://badge.fury.io/js/%40zodyac%2Fmongoose.svg)](https://badge.fury.io/js/%40zodyac%2Fmongoose)
+![NPM Version](https://img.shields.io/npm/v/%40zodyac%2Fzod-mongoose)
+![NPM Downloads](https://img.shields.io/npm/dw/%40zodyac%2Fzod-mongoose)
+![npm bundle size](https://img.shields.io/bundlephobia/min/%40zodyac%2Fzod-mongoose)
+![Test coverage](./badges/coverage.svg)
 
 > A part of [Zodyac toolbox](https://npmjs.com/org/zodyac).
 

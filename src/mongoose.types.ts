@@ -1,4 +1,4 @@
-import { SchemaTypes, Types } from "mongoose";
+import type { SchemaTypes, Types } from "mongoose";
 
 export namespace zm {
   export interface _Field<T> {
