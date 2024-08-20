@@ -198,7 +198,7 @@ function parseField<T>(
   }
 
   if (field instanceof ZodArray) {
-    return [parseField(field.element)];
+    return [parseField(field.element, required, def)];
   }
 
   if (field instanceof ZodDefault) {
