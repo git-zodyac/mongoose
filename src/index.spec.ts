@@ -20,7 +20,7 @@ const EXAMPLE_SCHEMA = z.object({
     city: z.string(),
     state: z.enum(["CA", "NY", "TX"]),
   }),
-  tags: z.array(z.string().refine((v) => v.length > 0)),
+  tags: z.array(z.string().refine((v) => v.length > 0)).default(["amazing"]),
   createdAt: z.date(),
   updatedAt: z.date(),
 
@@ -53,5 +53,13 @@ describe("Overall", () => {
     const parsed = zId.safeParse(id);
     expect(parsed.success).toBe(true);
     expect(parsed.data).toBe(id);
+  });
+
+  test("The default value for array should assign", () => {
+    const schema = zodSchema(EXAMPLE_SCHEMA);
+
+    expect((schema.obj.tags as any)[0].default).toBe(
+      EXAMPLE_SCHEMA.shape.tags._def.defaultValue()
+    );
   });
 });
