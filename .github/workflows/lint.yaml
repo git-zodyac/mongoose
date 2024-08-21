@@ -6,6 +6,11 @@ on:
     branches:
       - main
       - develop
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+      - develop
 
 jobs:
   lint:

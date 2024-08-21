@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches:
-      - branchname
+      - main
+      - develop
 
 jobs:
   test:

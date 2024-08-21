@@ -1,23 +1,24 @@
-import { Schema, SchemaTypes, Types, isValidObjectId } from "mongoose";
+import { Schema, SchemaTypes } from "mongoose";
 import {
-  ZodAny,
   ZodArray,
-  ZodBoolean,
   ZodDate,
   ZodDefault,
   ZodEffects,
   ZodEnum,
+  ZodMap,
   ZodNullable,
   ZodNumber,
   ZodObject,
   ZodOptional,
   type ZodRawShape,
+  ZodRecord,
   ZodString,
   type ZodType,
   ZodUnion,
-  z,
+  type z,
 } from "zod";
 import type { zm } from "./mongoose.types.js";
+export * from "./extension.js";
 
 /**
  * Converts a Zod schema to a Mongoose schema
@@ -25,16 +26,18 @@ import type { zm } from "./mongoose.types.js";
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchema } from '@zodyac/zod-mongoose';
+ * import { extendZod, zodSchema } from '@zodyac/zod-mongoose';
  * import { model } from 'mongoose';
  * import { z } from 'zod';
+ *
+ * extendZod(z);
  *
  * const zUser = z.object({
  *   name: z.string().min(3).max(255),
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: zId.describe('ObjectId:Company'),
+ *   companyId: z.objectId('Company'),
  *   address: z.object({
  *     street: z.string(),
  *     city: z.string(),
@@ -61,16 +64,18 @@ export function zodSchema<T extends ZodRawShape>(
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchemaRaw } from '@zodyac/zod-mongoose';
+ * import { extendZod, zodSchemaRaw } from '@zodyac/zod-mongoose';
  * import { model, Schema } from 'mongoose';
  * import { z } from 'zod';
+ *
+ * extendZod(z);
  *
  * const zUser = z.object({
  *   name: z.string().min(3).max(255),
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: zId.describe('ObjectId:Company'),
+ *   companyId: z.objectId('Company'),
  *   address: z.object({
  *    street: z.string(),
  *    city: z.string(),
@@ -89,57 +94,6 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
   return parseObject(schema);
 }
 
-/**
- * Zod ObjectId type
- *
- * You can provide a reference to a model to enable population via zod .describe() method.
- * Description must start with 'ObjectId:' followed by the collection name.
- *
- * Can also be used for string validation for ObjectId.
- *
- * @example
- * import { zId } from '@zodyac/zod-mongoose';
- * import { z } from 'zod';
- *
- * const zUser = z.object({
- *  name: z.string().min(3).max(255),
- *  companyId: zId.describe('ObjectId:Company'),
- * });
- */
-export const zId = z
-  .string()
-  .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
-  .or(z.instanceof(Types.ObjectId).describe("ObjectId"));
-
-/**
- * Zod UUID type (experimental)
- *
- * Use with caution.
- *
- * You can provide a reference to a model to enable population via zod .describe() method.
- * Description must start with 'UUID:' followed by the collection name.
- *
- * Can also be used for string validation for UUID.
- *
- * @warning
- * This is an expreimental feature.
- * UUIDs in Mongoose are a bit of a pain.
- * Mongoose uses version 4 UUIDs, which may not be compatible with the UUIDs used in other languages, e.g. C#.
- *
- * @example
- * import { zUUID, zodSchema } from '@zodyac/zod-mongoose';
- * import { z } from 'zod';
- *
- * const zUser = z.object({
- *   name: z.string().min(3).max(255),
- *   wearable: zUUID.describe('UUID:Wearable'),
- * });
- */
-export const zUUID = z
-  .string()
-  .uuid({ message: "Invalid UUID" })
-  .or(z.instanceof(Types.UUID).describe("UUID"));
-
 // Helpers
 function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
   const object: any = {};
@@ -148,40 +102,57 @@ function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
       object[key] = parseObject(field);
     } else {
       const f = parseField(field);
-      if (f) object[key] = f;
-      else console.error(`Key ${key}: Unsupported field type: ${field.constructor}`);
+      if (!f) throw new Error(`Unsupported field type: ${field.constructor}`);
+
+      object[key] = f;
     }
   }
+
   return object;
 }
 
 function parseField<T>(
   field: ZodType<T>,
-  required?: boolean,
+  required = true,
   def?: T,
-  // validate?: (v: T) => boolean,
+  refinement?: zm.EffectValidator<T>,
 ): zm.mField | null {
+  const field_type = field.constructor.name;
+
+  if ("__zm_type" in field && field.__zm_type === "ObjectId") {
+    const ref = (<any>field).__zm_ref;
+    const unique = (<any>field).__zm_unique;
+    return parseObjectId(required, ref, unique);
+  }
+
+  if ("__zm_type" in field && field.__zm_type === "UUID") {
+    const unique = (<any>field).__zm_unique;
+    return parseUUID(required, unique);
+  }
+
   if (field instanceof ZodObject) {
     return parseObject(field);
   }
 
   if (field instanceof ZodNumber) {
+    const isUnique = field.__zm_unique ?? false;
     return parseNumber(
       field,
       required,
       def as number,
-      field.description?.toLocaleLowerCase() === "unique",
-      // validate as (v: number) => boolean,
+      isUnique,
+      refinement as zm.EffectValidator<number>,
     );
   }
 
   if (field instanceof ZodString) {
+    const isUnique = field.__zm_unique ?? false;
     return parseString(
       field,
       required,
       def as string,
-      field.description?.toLocaleLowerCase() === "unique",
-      // validate as (v: string) => boolean,
+      isUnique,
+      refinement as zm.EffectValidator<string>,
     );
   }
 
@@ -189,16 +160,26 @@ function parseField<T>(
     return parseEnum(Object.keys(field.Values), required, def as string);
   }
 
-  if (field instanceof ZodBoolean) {
+  if (field_type === "ZodBoolean") {
     return parseBoolean(required, def as boolean);
   }
 
   if (field instanceof ZodDate) {
-    return parseDate(required, def as Date);
+    const isUnique = field.__zm_unique ?? false;
+    return parseDate(
+      required,
+      def as Date,
+      refinement as zm.EffectValidator<Date>,
+      isUnique,
+    );
   }
 
   if (field instanceof ZodArray) {
-    return [parseField(field.element)];
+    return parseArray(
+      required,
+      field.element,
+      def as T extends Array<infer K> ? K[] : never,
+    );
   }
 
   if (field instanceof ZodDefault) {
@@ -213,36 +194,34 @@ function parseField<T>(
     return parseField(field._def.innerType, false, def || null);
   }
 
-  if (field.description?.startsWith("ObjectId")) {
-    const ref = field.description.split(":")[1];
-    if (ref) return parseObjectIdRef(required, ref);
-    return parseObjectId(required);
-  }
-
-  if (field.description?.startsWith("UUID")) {
-    const ref = field.description.split(":")[1];
-    if (ref) return parseUUIDRef(required, ref);
-    return parseUUID(required);
-  }
-
   if (field instanceof ZodUnion) {
     return parseField(field._def.options[0]);
   }
 
-  if (field instanceof ZodAny) {
+  if (field_type === "ZodAny") {
     return parseMixed(required, def);
   }
 
+  if (field instanceof ZodMap || field instanceof ZodRecord) {
+    return parseMap(
+      required,
+      field.keySchema,
+      def as Map<
+        zm.UnwrapZodType<typeof field.keySchema>,
+        zm.UnwrapZodType<typeof field.valueSchema>
+      >,
+    );
+  }
+
   if (field instanceof ZodEffects) {
-    if (field._def.effect.type === "refinement") {
-      return parseField(
-        field._def.schema,
-        required,
-        def,
-        // field._def.effect.refinement as (v: T) => boolean,
-      );
+    const effect = field._def.effect;
+
+    if (effect.type === "refinement") {
+      const validation = (<any>effect).__zm_validation as zm.EffectValidator<T>;
+      return parseField(field._def.schema, required, def, validation);
     }
   }
+
   return null;
 }
 
@@ -251,9 +230,9 @@ function parseNumber(
   required = true,
   def?: number,
   unique = false,
-  validate?: (v: number) => boolean,
+  validate?: zm.EffectValidator<number>,
 ): zm.mNumber {
-  const numberField: zm.mNumber = {
+  const output: zm.mNumber = {
     type: Number,
     default: def,
     min: field.minValue ?? undefined,
@@ -262,9 +241,8 @@ function parseNumber(
     unique,
   };
 
-  if (validate) numberField.validation = { validate };
-
-  return numberField;
+  if (validate) output.validate = validate;
+  return output;
 }
 
 function parseString(
@@ -272,30 +250,28 @@ function parseString(
   required = true,
   def?: string,
   unique = false,
-  validate?: ((v: string) => boolean) | undefined,
+  validate?: zm.EffectValidator<string>,
 ): zm.mString {
-  const stringField: zm.mString = {
+  const output: zm.mString = {
     type: String,
     default: def,
-    // TODO: match: field.regex(),
     required,
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
     unique,
   };
-  
-  if (validate) stringField.validation = { validate };
 
-  return stringField;
+  if (validate) output.validate = validate;
+  return output;
 }
 
 function parseEnum(values: string[], required = true, def?: string): zm.mString {
   return {
     type: String,
+    unique: false,
     default: def,
     enum: values,
     required,
-    unique: false,
   };
 }
 
@@ -307,43 +283,80 @@ function parseBoolean(required = true, def?: boolean): zm.mBoolean {
   };
 }
 
-function parseDate(required = true, def?: Date): zm.mDate {
-  return {
+function parseDate(
+  required = true,
+  def?: Date,
+  validate?: zm.EffectValidator<Date>,
+  unique = false,
+): zm.mDate {
+  const output: zm.mDate = {
     type: Date,
+    default: def,
+    required,
+    unique,
+  };
+
+  if (validate) output.validate = validate;
+  return output;
+}
+
+function parseObjectId(required = true, ref?: string, unique = false): zm.mObjectId {
+  const output: zm.mObjectId = {
+    type: SchemaTypes.ObjectId,
+    required,
+    unique,
+  };
+
+  if (ref) output.ref = ref;
+  return output;
+}
+
+// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
+function parseArray<T>(required = true, element: ZodType<T>, def?: T[]): zm.mArray<T> {
+  const innerType = parseField(element);
+  if (!innerType) throw new Error("Unsupported array type");
+  return {
+    type: [innerType as zm._Field<T>],
     default: def,
     required,
   };
 }
 
-function parseObjectId(required = true): zm.mObjectId {
+function parseMap<T, K>(
+  // biome-ignore lint/style/useDefaultParameterLast: Consistency
+  required = true,
+  key: ZodType<T>,
+  def?: Map<NoInfer<T>, K>,
+): zm.mMap<T, K> {
+  const pointer = typeConstructor(key);
   return {
-    type: SchemaTypes.ObjectId,
+    type: Map,
+    of: pointer,
+    default: def,
     required,
   };
 }
 
-// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
-function parseObjectIdRef(required = true, ref: string): zm.mObjectId {
-  return {
-    type: SchemaTypes.ObjectId,
-    ref,
-    required,
-  };
+function typeConstructor<T>(t: ZodType<T>) {
+  switch (true) {
+    case t instanceof ZodString:
+      return String;
+    case t instanceof ZodEnum:
+      return String;
+    case t instanceof ZodNumber:
+      return Number;
+    case t instanceof ZodDate:
+      return Date;
+    default:
+      return undefined;
+  }
 }
 
-function parseUUID(required = true): zm.mUUID {
+function parseUUID(required = true, unique = false): zm.mUUID {
   return {
     type: SchemaTypes.UUID,
     required,
-  };
-}
-
-// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
-function parseUUIDRef(required = true, ref: string): zm.mUUID {
-  return {
-    type: SchemaTypes.UUID,
-    ref,
-    required,
+    unique,
   };
 }
 
