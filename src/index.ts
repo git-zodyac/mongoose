@@ -1,4 +1,4 @@
-import { Schema, SchemaTypes } from "mongoose";
+import { Schema, type SchemaOptions, SchemaTypes } from "mongoose";
 import {
   ZodArray,
   ZodDate,
@@ -53,9 +53,10 @@ export * from "./extension.js";
  */
 export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
+  options?: SchemaOptions<any>, // TODO: Fix any
 ): Schema<z.infer<typeof schema>> {
   const definition = parseObject(schema);
-  return new Schema<z.infer<typeof schema>>(definition);
+  return new Schema<z.infer<typeof schema>>(definition, options);
 }
 
 /**

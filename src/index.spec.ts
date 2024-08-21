@@ -1,4 +1,4 @@
-import { SchemaTypes, Types } from "mongoose";
+import { Schema, SchemaTypes, Types } from "mongoose";
 import { z } from "zod";
 import { extendZod } from "./extension";
 import zodSchema, { zodSchemaRaw } from "./index";
@@ -53,12 +53,15 @@ const EXAMPLE_SCHEMA = z.object({
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
-// console.log(schema.obj);
-// console.log(JSON.stringify(schema.obj, null, 2));
+console.log(schema.obj);
 
 describe("Overall", () => {
   test("Smoke test", () => {
     expect(schema).toBeDefined();
+  });
+
+  test("zodSchema should return a mongoose schema", () => {
+    expect(schema).toBeInstanceOf(Schema);
   });
 
   test("zodSchema should contain all fields", () => {
