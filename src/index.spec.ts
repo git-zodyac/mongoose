@@ -50,7 +50,6 @@ const EXAMPLE_SCHEMA = z.object({
   access_map: z.map(z.enum(["admin", "user"]), z.object({ value: z.number() })),
   sessions: z.record(z.date(), z.string()),
   notes: z.any(),
-
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
@@ -123,26 +122,32 @@ describe("Helpers", () => {
   });
 
   test("z.objectId() should support being optional", () => {
-    const schema = zodSchema(z.object({
-      id: z.objectId().optional(),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.objectId().optional(),
+      }),
+    );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
   });
 
   test("z.objectId(ref) should define reference when created", () => {
-    const schema = zodSchema(z.object({
-      id: z.objectId("Company"),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.objectId("Company"),
+      }),
+    );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
   test("z.objectId(ref) should support being optional", () => {
-    const schema = zodSchema(z.object({
-      id: z.objectId("Company").optional(),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.objectId("Company").optional(),
+      }),
+    );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
@@ -150,26 +155,32 @@ describe("Helpers", () => {
   });
 
   test("z.objectId().ref(ref) should define reference", () => {
-    const schema = zodSchema(z.object({
-      id: z.objectId().ref("Company"),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.objectId().ref("Company"),
+      }),
+    );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
   test("z.objectId() should support being optional", () => {
-    const schema = zodSchema(z.object({
-      id: z.objectId().optional(),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.objectId().optional(),
+      }),
+    );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
   });
 
   test("z.mongoUUID() should support being optional", () => {
-    const schema = zodSchema(z.object({
-      id: z.mongoUUID().optional(),
-    }));
+    const schema = zodSchema(
+      z.object({
+        id: z.mongoUUID().optional(),
+      }),
+    );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
     expect((<any>schema.obj.id).required).toBe(false);
