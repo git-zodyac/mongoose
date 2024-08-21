@@ -19,6 +19,7 @@ import {
   type z,
 } from "zod";
 import type { zm } from "./mongoose.types.js";
+export * from "./extension.js";
 
 /**
  * Converts a Zod schema to a Mongoose schema
@@ -118,15 +119,13 @@ function parseField<T>(
 
   if ("__zm_type" in field && field.__zm_type === "ObjectId") {
     const ref = (<any>field).__zm_ref;
-    if (ref) return parseObjectIdRef(required, ref);
-    return parseObjectId(required);
+    const unique = (<any>field).__zm_unique;
+    return parseObjectId(required, ref, unique);
   }
 
   if ("__zm_type" in field && field.__zm_type === "UUID") {
-    const ref = (<any>field).__zm_ref;
-
-    if (ref) return parseUUIDRef(required, ref);
-    return parseUUID(required);
+    const unique = (<any>field).__zm_unique;
+    return parseUUID(required, unique);
   }
 
   if (field instanceof ZodObject) {
@@ -299,11 +298,15 @@ function parseDate(
   return output;
 }
 
-function parseObjectId(required = true): zm.mObjectId {
-  return {
+function parseObjectId(required = true, ref?: string, unique = false): zm.mObjectId {
+  const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
+    unique,
   };
+
+  if (ref) output.ref = ref;
+  return output;
 }
 
 // biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
@@ -349,28 +352,11 @@ function typeConstructor<T>(t: ZodType) {
   }
 }
 
-// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
-function parseObjectIdRef(required = true, ref: string): zm.mObjectId {
-  return {
-    type: SchemaTypes.ObjectId,
-    required,
-    ref,
-  };
-}
-
-function parseUUID(required = true): zm.mUUID {
+function parseUUID(required = true, unique = false): zm.mUUID {
   return {
     type: SchemaTypes.UUID,
     required,
-  };
-}
-
-// biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
-function parseUUIDRef(required = true, ref: string): zm.mUUID {
-  return {
-    type: SchemaTypes.UUID,
-    required,
-    ref,
+    unique,
   };
 }
 

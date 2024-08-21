@@ -9,11 +9,13 @@ export namespace zm {
     __zm_type: "ObjectId";
     __zm_ref?: string;
     ref: (ref: string) => zID;
+    unique: (val?: boolean) => zID;
   }
 
   export interface zUUID
     extends z.ZodUnion<[z.ZodString, z.ZodType<Types.UUID, z.ZodTypeDef, Types.UUID>]> {
     __zm_type: "UUID";
+    unique: (val?: boolean) => zID;
   }
 
   export interface _Field<T> {
@@ -52,11 +54,13 @@ export namespace zm {
 
   export interface mObjectId extends _Field<Types.ObjectId> {
     type: typeof SchemaTypes.ObjectId;
+    unique?: boolean;
     ref?: string;
   }
 
   export interface mUUID extends _Field<Types.UUID> {
     type: typeof SchemaTypes.UUID;
+    unique?: boolean;
     ref?: string;
   }
 

@@ -1,7 +1,7 @@
 import { SchemaTypes, Types } from "mongoose";
 import { z } from "zod";
+import { extendZod } from "./extension";
 import zodSchema, { zodSchemaRaw } from "./index";
-import { extendZod } from "./side-effects";
 
 extendZod(z);
 
@@ -16,7 +16,9 @@ const EXAMPLE_SCHEMA = z.object({
   age: z.number().min(18).max(100),
   active: z.boolean().default(false),
   access: z.enum(["admin", "user"]).default("user"),
-  wearable: z.mongoUUID(),
+  unique_num: z.number().unique(),
+  wearable: z.mongoUUID().unique(),
+  devices: z.mongoUUID().array(),
   companyId: z.objectId("Company"),
   address: z.object({
     street: z.string().describe("unique"),
@@ -34,6 +36,8 @@ const EXAMPLE_SCHEMA = z.object({
     .refine((v) => v.length === 10, "Must be a valid phone number"),
 
   curator: z.objectId().optional(),
+  unique_id: z.objectId().unique(),
+  unique_date: z.date().unique(),
   hashes: z
     .string()
     .refine((val) => val.startsWith("oi"), { message: "Custom message" })
@@ -318,5 +322,25 @@ describe("Validation", () => {
   test("Unique string schema", () => {
     expect((<any>schema.obj.phone).unique).toBe(true);
     expect((<any>schema.obj.name).unique).toBe(false);
+  });
+
+  test("Unique number schema", () => {
+    expect((<any>schema.obj.unique_num).unique).toBe(true);
+    expect((<any>schema.obj.age).unique).toBe(false);
+  });
+
+  test("Unique date schema", () => {
+    expect((<any>schema.obj.unique_date).unique).toBe(true);
+    expect((<any>schema.obj.createdAt).unique).toBeFalsy();
+    expect((<any>schema.obj.updatedAt).unique).toBeFalsy();
+  });
+
+  test("Unique objectId schema", () => {
+    expect((<any>schema.obj.unique_id).unique).toBe(true);
+    expect((<any>schema.obj.companyId).unique).toBeFalsy();
+  });
+
+  test("Unique mongoUUID schema", () => {
+    expect((<any>schema.obj.wearable).unique).toBe(true);
   });
 });

@@ -42,7 +42,6 @@ export function extendZod(z_0: typeof z) {
     let message: string | undefined | ((v: T) => string | undefined) = undefined;
     if (typeof opts === "string") message = opts;
     else if ("message" in opts) message = opts.message;
-    else if (typeof opts === "function") message = (v) => opts(v).message;
 
     (<any>zEffect._def.effect).__zm_validation = {
       validator: check,
@@ -81,6 +80,11 @@ export function extendZod(z_0: typeof z) {
       return this;
     };
 
+    (<any>output).unique = function (val = true) {
+      (<any>this).__zm_unique = val;
+      return this;
+    };
+
     return output;
   };
 
@@ -90,6 +94,11 @@ export function extendZod(z_0: typeof z) {
       .uuid({ message: "Invalid UUID" })
       .or(z.instanceof(Types.UUID).describe("UUID"));
     (<any>output).__zm_type = "UUID";
+
+    (<any>output).unique = function (val = true) {
+      (<any>this).__zm_unique = val;
+      return this;
+    };
 
     return output;
   };
