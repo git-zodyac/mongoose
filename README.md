@@ -1,4 +1,4 @@
-# Zod to mongoose schema converter
+# Zod to Mongoose schema converter
 
 ![NPM Version](https://img.shields.io/npm/v/%40zodyac%2Fzod-mongoose)
 ![NPM Downloads](https://img.shields.io/npm/dw/%40zodyac%2Fzod-mongoose)
