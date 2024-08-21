@@ -1,4 +1,5 @@
 # Zod to mongoose schema converter
+
 ![NPM Version](https://img.shields.io/npm/v/%40zodyac%2Fzod-mongoose)
 ![NPM Downloads](https://img.shields.io/npm/dw/%40zodyac%2Fzod-mongoose)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/%40zodyac%2Fzod-mongoose)
@@ -12,6 +13,12 @@ This package provides a function to convert [zod](https://www.npmjs.com/package/
 
 ```bash
 npm i @zodyac/zod-mongoose
+
+pnpm add @zodyac/zod-mongoose
+
+yarn add @zodyac/zod-mongoose
+
+bun add @zodyac/zod-mongoose
 ```
 
 ## Usage
@@ -38,7 +45,6 @@ const zUser = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 ```
 
 Then, convert it to mongoose schema and connect model:
@@ -73,16 +79,16 @@ userModel.find({ name: 'John' });
 - ❗️ Unions (not supported by mongoose)
 - ❗️ Intersection (not supported by mongoose)
 - ❗️ Indexes (not supported by zod)
-- ❗️ Number enums (comming soon)
-- ⏳ Regex validation (comming soon)
-- ⏳ Custom validators (comming soon)
-- ⏳ instanceOf (comming soon)
-- ⏳ Transform (comming soon)
-- ⏳ Refine (comming soon)
+- ⏳ Number enums (coming soon)
+- ⏳ Regex validation (coming soon)
+- ⏳ Custom validators (coming soon)
+- ⏳ instanceOf (coming soon)
+- ⏳ Transform (coming soon)
+- ⏳ Refine (coming soon)
 
 ## Checking schemas
 
-To make sure nothing is missing, you can use ```Schema.obj```:
+To make sure nothing is missing, you can use `Schema.obj`:
 
 ```typescript
 // schema is mongoose schema
@@ -91,7 +97,7 @@ console.log(schema.obj);
 
 ## Raw object
 
-If you want to get raw object from zod schema to modify it, you can use ```zodSchemaRaw``` function:
+If you want to get raw object from zod schema to modify it, you can use `zodSchemaRaw` function:
 
 ```typescript
 import { zodSchemaRaw } from '@zodyac/zod-mongoose';
@@ -104,4 +110,5 @@ const model = model('User', new Schema(schema));
 ```
 
 ## License
+
 MIT
