@@ -76,7 +76,7 @@ userModel.find({ name: "John" });
 - ✅ ObjectId references
 - ✅ ZodAny as SchemaTypes.Mixed
 - ✅ Validation using refinement for String, Number, Date
-- ✅ Unique for String, Number and Date
+- ✅ Unique for String, Number and Date and ObjectId
 
 - ⚠️ Record (Being converted to Map)
 - ⚠️ Unions (not supported by mongoose, will pick first inner type)
