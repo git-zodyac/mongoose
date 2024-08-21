@@ -21,7 +21,7 @@ const EXAMPLE_SCHEMA = z.object({
   devices: z.mongoUUID().array(),
   companyId: z.objectId("Company"),
   address: z.object({
-    street: z.string().describe("unique"),
+    street: z.string(),
     city: z.string(),
     state: z.enum(["CA", "NY", "TX"]),
   }),
@@ -38,6 +38,7 @@ const EXAMPLE_SCHEMA = z.object({
   curator: z.objectId().optional(),
   unique_id: z.objectId().unique(),
   unique_date: z.date().unique(),
+  nullable_field: z.string().nullable(),
   hashes: z
     .string()
     .refine((val) => val.startsWith("oi"), { message: "Custom message" })
@@ -45,6 +46,11 @@ const EXAMPLE_SCHEMA = z.object({
 
   posts: z.array(SUBDOCUMENT_SCHEMA),
   keys: z.map(z.string(), z.object({ value: z.number() })),
+  number_map: z.map(z.number(), z.object({ value: z.number() })),
+  access_map: z.map(z.enum(["admin", "user"]), z.object({ value: z.number() })),
+  sessions: z.record(z.date(), z.string()),
+  notes: z.any(),
+
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
@@ -52,6 +58,10 @@ const schema = zodSchema(EXAMPLE_SCHEMA);
 // console.log(JSON.stringify(schema.obj, null, 2));
 
 describe("Overall", () => {
+  test("Smoke test", () => {
+    expect(schema).toBeDefined();
+  });
+
   test("zodSchema should contain all fields", () => {
     for (const key of Object.keys(EXAMPLE_SCHEMA.shape)) {
       expect(key in schema.obj).toBe(true);
@@ -177,6 +187,25 @@ describe("Unsupported types", () => {
 
     expect((<any>obj.field).type).toBe(String);
   });
+
+  test("Unsupported type should throw an error", () => {
+    const schema = z.object({
+      field: z.unknown(),
+    });
+
+    expect(() => zodSchema(schema)).toThrow();
+  });
+
+  test("Unsupported Map key should not throw an error", () => {
+    const schema = z.object({
+      field: z.map(z.unknown(), z.string()),
+    });
+
+    expect(() => zodSchema(schema)).not.toThrow();
+    const { obj } = zodSchema(schema);
+
+    expect((<any>obj.field).type).toBe(Map);
+  });
 });
 
 describe("Supported types", () => {
@@ -246,7 +275,20 @@ describe("Supported types", () => {
     if (!schema.obj.keys) throw new Error("No keys definition");
 
     expect((<any>schema.obj.keys).type).toBe(Map);
+    expect((<any>schema.obj.number_map).type).toBe(Map);
+    expect((<any>schema.obj.access_map).type).toBe(Map);
+
     expect((<any>schema.obj.keys).of).toBe(String);
+    expect((<any>schema.obj.number_map).of).toBe(Number);
+    expect((<any>schema.obj.access_map).of).toBe(String);
+    expect((<any>schema.obj.sessions).of).toBe(Date);
+  });
+
+  test("Record should have correct type", () => {
+    if (!schema.obj.sessions) throw new Error("No sessions definition");
+
+    expect((<any>schema.obj.sessions).type).toBe(Map);
+    expect((<any>schema.obj.sessions).of).toBe(Date);
   });
 
   test("Array of objects should have correct type", () => {
@@ -274,6 +316,12 @@ describe("Supported types", () => {
     if (!schema.obj.access) throw new Error("No access definition");
 
     expect((<any>schema.obj.access).default).toBe("user");
+  });
+
+  test("ZodAny field should have correct type - Mixed", () => {
+    if (!schema.obj.notes) throw new Error("No notes definition");
+
+    expect((<any>schema.obj.notes).type).toBe(SchemaTypes.Mixed);
   });
 });
 
@@ -342,5 +390,10 @@ describe("Validation", () => {
 
   test("Unique mongoUUID schema", () => {
     expect((<any>schema.obj.wearable).unique).toBe(true);
+  });
+
+  test("Nullable field should be nullable", () => {
+    expect((<any>schema.obj.nullable_field).required).toBe(false);
+    expect((<any>schema.obj.nullable_field).default).toBe(null);
   });
 });

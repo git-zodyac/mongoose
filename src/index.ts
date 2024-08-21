@@ -1,7 +1,6 @@
 import { Schema, SchemaTypes } from "mongoose";
 import {
   ZodArray,
-  ZodBoolean,
   ZodDate,
   ZodDefault,
   ZodEffects,
@@ -27,17 +26,18 @@ export * from "./extension.js";
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchema } from '@zodyac/zod-mongoose';
+ * import { extendZod, zodSchema } from '@zodyac/zod-mongoose';
  * import { model } from 'mongoose';
  * import { z } from 'zod';
-import { Constructor } from './mongoose.types';
+ *
+ * extendZod(z);
  *
  * const zUser = z.object({
  *   name: z.string().min(3).max(255),
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: zId.describe('ObjectId:Company'),
+ *   companyId: z.objectId('Company'),
  *   address: z.object({
  *     street: z.string(),
  *     city: z.string(),
@@ -64,16 +64,18 @@ export function zodSchema<T extends ZodRawShape>(
  * @returns mongoose schema
  *
  * @example
- * import { zId, zodSchemaRaw } from '@zodyac/zod-mongoose';
+ * import { extendZod, zodSchemaRaw } from '@zodyac/zod-mongoose';
  * import { model, Schema } from 'mongoose';
  * import { z } from 'zod';
+ *
+ * extendZod(z);
  *
  * const zUser = z.object({
  *   name: z.string().min(3).max(255),
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: zId.describe('ObjectId:Company'),
+ *   companyId: z.objectId('Company'),
  *   address: z.object({
  *    street: z.string(),
  *    city: z.string(),
@@ -335,18 +337,16 @@ function parseMap<T, K>(
   };
 }
 
-function typeConstructor<T>(t: ZodType) {
+function typeConstructor<T>(t: ZodType<T>) {
   switch (true) {
     case t instanceof ZodString:
       return String;
+    case t instanceof ZodEnum:
+      return String;
     case t instanceof ZodNumber:
       return Number;
-    case t instanceof ZodObject:
-      return Object;
     case t instanceof ZodDate:
       return Date;
-    case t instanceof ZodBoolean:
-      return Boolean;
     default:
       return undefined;
   }

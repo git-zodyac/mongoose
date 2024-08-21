@@ -76,7 +76,7 @@ userModel.find({ name: "John" });
 - ✅ ObjectId references
 - ✅ ZodAny as SchemaTypes.Mixed
 - ✅ Validation using refinement for String, Number, Date
-- ✅ Unique for String, Number and Date and ObjectId
+- ✅ Unique for String, Number, Date, ObjectId and UUID
 
 - ⚠️ Record (Being converted to Map)
 - ⚠️ Unions (not supported by mongoose, will pick first inner type)
@@ -86,7 +86,6 @@ userModel.find({ name: "John" });
 - ❗️ Indexes (not supported by zod)
 
 - ⏳ Timestamps
-- ⏳ Unique for ObjectId, UUID
 - ⏳ Regex validation (coming soon)
 - ⏳ instanceOf (coming soon)
 
@@ -110,9 +109,11 @@ import { model, Schema } from "mongoose";
 extendZod(z);
 
 const schema = zodSchemaRaw(zDoc);
-schema.age.timestamp = true
+schema.age.index = true
 
-const model = model("User", new Schema(schema));
+const model = model("User", new Schema(schema, {
+  timestamps: true,
+}));
 ```
 
 ## ObjectID and UUID
@@ -127,6 +128,7 @@ extendZod(z);
 const zUser = z.object({
   someId: z.objectId(),
   companyId: z.objectId("Company"),
+  facilityId: z.objectId().ref("Facility"),
   wearable: z.mongoUUID(),
 });
 ```

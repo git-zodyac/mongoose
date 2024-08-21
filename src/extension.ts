@@ -23,8 +23,13 @@ declare module "zod" {
     function mongoUUID(): zm.zUUID;
   }
 
-  // TODO: unique ObjectID
-  // TODO: unique UUID
+  interface ZodType<
+    Output = any,
+    Def extends z.ZodTypeDef = z.ZodTypeDef,
+    Input = Output,
+  > {
+    // For future use
+  }
 }
 
 export function extendZod(z_0: typeof z) {
@@ -70,7 +75,7 @@ export function extendZod(z_0: typeof z) {
     const output = z
       .string()
       .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
-      .or(z.instanceof(Types.ObjectId).describe("ObjectId"));
+      .or(z.instanceof(Types.ObjectId));
 
     (<any>output).__zm_type = "ObjectId";
     (<any>output).__zm_ref = ref;
