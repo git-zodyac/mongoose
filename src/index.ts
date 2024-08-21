@@ -1,4 +1,4 @@
-import { Schema, SchemaTypes, Types, isValidObjectId } from "mongoose";
+import { Schema, SchemaTypes } from "mongoose";
 import {
   ZodArray,
   ZodBoolean,
@@ -12,10 +12,11 @@ import {
   ZodObject,
   ZodOptional,
   type ZodRawShape,
+  ZodRecord,
   ZodString,
   type ZodType,
   ZodUnion,
-  z,
+  type z,
 } from "zod";
 import type { zm } from "./mongoose.types.js";
 
@@ -90,60 +91,6 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
   return parseObject(schema);
 }
 
-/**
- * Zod ObjectId type
- *
- * You can provide a reference to a model to enable population via zod .describe() method.
- * Description must start with 'ObjectId:' followed by the collection name.
- *
- * Can also be used for string validation for ObjectId.
- *
- * @example
- * import { zId } from '@zodyac/zod-mongoose';
- * import { z } from 'zod';
- *
- * const zUser = z.object({
- *  name: z.string().min(3).max(255),
- *  companyId: zId.describe('ObjectId:Company'),
- * });
- */
-export const zId = z
-  .string()
-  .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
-  .or(z.instanceof(Types.ObjectId).describe("ObjectId"));
-
-(<any>zId).__zm_type = "ObjectId";
-
-/**
- * Zod UUID type (experimental)
- *
- * Use with caution.
- *
- * You can provide a reference to a model to enable population via zod .describe() method.
- * Description must start with 'UUID:' followed by the collection name.
- *
- * Can also be used for string validation for UUID.
- *
- * @warning
- * This is an experimental feature.
- * UUIDs in Mongoose are a bit of a pain.
- * Mongoose uses version 4 UUIDs, which may not be compatible with the UUIDs used in other languages, e.g. C#.
- *
- * @example
- * import { zUUID, zodSchema } from '@zodyac/zod-mongoose';
- * import { z } from 'zod';
- *
- * const zUser = z.object({
- *   name: z.string().min(3).max(255),
- *   wearable: zUUID.describe('UUID:Wearable'),
- * });
- */
-export const zUUID = z
-  .string()
-  .uuid({ message: "Invalid UUID" })
-  .or(z.instanceof(Types.UUID).describe("UUID"));
-(<any>zUUID).__zm_type = "UUID";
-
 // Helpers
 function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
   const object: any = {};
@@ -157,6 +104,7 @@ function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
       object[key] = f;
     }
   }
+
   return object;
 }
 
@@ -164,24 +112,19 @@ function parseField<T>(
   field: ZodType<T>,
   required = true,
   def?: T,
-  // validate?: (v: T) => boolean,
+  refinement?: zm.EffectValidator<T>,
 ): zm.mField | null {
   const field_type = field.constructor.name;
 
-  if (
-    ("__zm_type" in field && field.__zm_type === "ObjectId") ||
-    (field_type === "ZodUnion" && field.description?.startsWith("ObjectId"))
-  ) {
-    const ref = field.description?.split(":")[1];
+  if ("__zm_type" in field && field.__zm_type === "ObjectId") {
+    const ref = (<any>field).__zm_ref;
     if (ref) return parseObjectIdRef(required, ref);
     return parseObjectId(required);
   }
 
-  if (
-    ("__zm_type" in field && field.__zm_type === "UUID") ||
-    (field_type === "ZodUnion" && field.description?.startsWith("UUID"))
-  ) {
-    const ref = field.description?.split(":")[1];
+  if ("__zm_type" in field && field.__zm_type === "UUID") {
+    const ref = (<any>field).__zm_ref;
+
     if (ref) return parseUUIDRef(required, ref);
     return parseUUID(required);
   }
@@ -191,22 +134,24 @@ function parseField<T>(
   }
 
   if (field instanceof ZodNumber) {
+    const isUnique = field.__zm_unique ?? false;
     return parseNumber(
       field,
       required,
       def as number,
-      field.description?.toLocaleLowerCase() === "unique",
-      // validate as (v: number) => boolean,
+      isUnique,
+      refinement as zm.EffectValidator<number>,
     );
   }
 
   if (field instanceof ZodString) {
+    const isUnique = field.__zm_unique ?? false;
     return parseString(
       field,
       required,
       def as string,
-      field.description?.toLocaleLowerCase() === "unique",
-      // validate as (v: string) => boolean,
+      isUnique,
+      refinement as zm.EffectValidator<string>,
     );
   }
 
@@ -218,8 +163,14 @@ function parseField<T>(
     return parseBoolean(required, def as boolean);
   }
 
-  if (field_type === "ZodDate") {
-    return parseDate(required, def as Date);
+  if (field instanceof ZodDate) {
+    const isUnique = field.__zm_unique ?? false;
+    return parseDate(
+      required,
+      def as Date,
+      refinement as zm.EffectValidator<Date>,
+      isUnique,
+    );
   }
 
   if (field instanceof ZodArray) {
@@ -250,21 +201,7 @@ function parseField<T>(
     return parseMixed(required, def);
   }
 
-  if (field instanceof ZodEffects) {
-    const effect = field._def.effect;
-    console.log(effect);
-
-    if (field._def.effect.type === "refinement") {
-      return parseField(
-        field._def.schema,
-        required,
-        def,
-        // field._def.effect.refinement as (v: T) => boolean,
-      );
-    }
-  }
-
-  if (field instanceof ZodMap) {
+  if (field instanceof ZodMap || field instanceof ZodRecord) {
     return parseMap(
       required,
       field.keySchema,
@@ -275,6 +212,15 @@ function parseField<T>(
     );
   }
 
+  if (field instanceof ZodEffects) {
+    const effect = field._def.effect;
+
+    if (effect.type === "refinement") {
+      const validation = (<any>effect).__zm_validation as zm.EffectValidator<T>;
+      return parseField(field._def.schema, required, def, validation);
+    }
+  }
+
   return null;
 }
 
@@ -283,23 +229,9 @@ function parseNumber(
   required = true,
   def?: number,
   unique = false,
-  validate?: (v: number) => boolean,
+  validate?: zm.EffectValidator<number>,
 ): zm.mNumber {
-  if (validate) {
-    return {
-      type: Number,
-      default: def,
-      min: field.minValue ?? undefined,
-      max: field.maxValue ?? undefined,
-      validation: {
-        validate,
-      },
-      required,
-      unique,
-    };
-  }
-
-  return {
+  const output: zm.mNumber = {
     type: Number,
     default: def,
     min: field.minValue ?? undefined,
@@ -307,6 +239,9 @@ function parseNumber(
     required,
     unique,
   };
+
+  if (validate) output.validate = validate;
+  return output;
 }
 
 function parseString(
@@ -314,40 +249,28 @@ function parseString(
   required = true,
   def?: string,
   unique = false,
-  validate?: ((v: string) => boolean) | undefined,
+  validate?: zm.EffectValidator<string>,
 ): zm.mString {
-  if (validate) {
-    return {
-      type: String,
-      default: def,
-      required,
-      minLength: field.minLength ?? undefined,
-      maxLength: field.maxLength ?? undefined,
-      validation: {
-        validate,
-      },
-      unique,
-    };
-  }
-
-  return {
+  const output: zm.mString = {
     type: String,
     default: def,
-    // TODO: match: field.regex(),
     required,
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
     unique,
   };
+
+  if (validate) output.validate = validate;
+  return output;
 }
 
 function parseEnum(values: string[], required = true, def?: string): zm.mString {
   return {
     type: String,
+    unique: false,
     default: def,
     enum: values,
     required,
-    unique: false,
   };
 }
 
@@ -359,12 +282,21 @@ function parseBoolean(required = true, def?: boolean): zm.mBoolean {
   };
 }
 
-function parseDate(required = true, def?: Date): zm.mDate {
-  return {
+function parseDate(
+  required = true,
+  def?: Date,
+  validate?: zm.EffectValidator<Date>,
+  unique = false,
+): zm.mDate {
+  const output: zm.mDate = {
     type: Date,
     default: def,
     required,
+    unique,
   };
+
+  if (validate) output.validate = validate;
+  return output;
 }
 
 function parseObjectId(required = true): zm.mObjectId {
@@ -394,9 +326,9 @@ function parseMap<T, K>(
   const pointer = typeConstructor(key);
   return {
     type: Map,
+    of: pointer,
     default: def,
     required,
-    of: pointer,
   };
 }
 
