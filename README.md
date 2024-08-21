@@ -5,8 +5,6 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/min/%40zodyac%2Fzod-mongoose)
 ![Test coverage](./badges/coverage.svg)
 
-> A part of [Zodyac toolbox](https://npmjs.com/org/zodyac).
-
 This package provides a function to convert [zod](https://www.npmjs.com/package/zod) object to [mongoose](https://www.npmjs.com/package/mongoose) schema.
 
 ## Installation
@@ -20,6 +18,13 @@ yarn add @zodyac/zod-mongoose
 
 bun add @zodyac/zod-mongoose
 ```
+
+## Breaking changes
+> [!WARNING]
+> If you were using ```zId``` or ```zUUID``` before, please replace those with ```z.objectId()``` and ```z.mongoUUID()```.
+
+- ```zId``` is now ```z.objectId()```
+- ```zUUID``` is now ```z.mongoUUID()```
 
 ## Usage
 
@@ -136,6 +141,7 @@ const zUser = z.object({
   wearable: z.mongoUUID(),
 });
 ```
+
 ## Validation
 You can use zod refinement to validate your mongoose models:
 
