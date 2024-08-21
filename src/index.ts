@@ -253,21 +253,7 @@ function parseNumber(
   unique = false,
   validate?: (v: number) => boolean,
 ): zm.mNumber {
-  if (validate) {
-    return {
-      type: Number,
-      default: def,
-      min: field.minValue ?? undefined,
-      max: field.maxValue ?? undefined,
-      validation: {
-        validate,
-      },
-      required,
-      unique,
-    };
-  }
-
-  return {
+  const numberField: zm.mNumber = {
     type: Number,
     default: def,
     min: field.minValue ?? undefined,
@@ -275,6 +261,10 @@ function parseNumber(
     required,
     unique,
   };
+
+  if (validate) numberField.validation = { validate };
+
+  return numberField;
 }
 
 function parseString(
@@ -284,21 +274,7 @@ function parseString(
   unique = false,
   validate?: ((v: string) => boolean) | undefined,
 ): zm.mString {
-  if (validate) {
-    return {
-      type: String,
-      default: def,
-      required,
-      minLength: field.minLength ?? undefined,
-      maxLength: field.maxLength ?? undefined,
-      validation: {
-        validate,
-      },
-      unique,
-    };
-  }
-
-  return {
+  const stringField: zm.mString = {
     type: String,
     default: def,
     // TODO: match: field.regex(),
@@ -307,6 +283,10 @@ function parseString(
     maxLength: field.maxLength ?? undefined,
     unique,
   };
+  
+  if (validate) stringField.validation = { validate };
+
+  return stringField;
 }
 
 function parseEnum(values: string[], required = true, def?: string): zm.mString {
