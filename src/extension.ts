@@ -32,10 +32,11 @@ declare module "zod" {
   }
 }
 
+let zod_extended = false;
 export function extendZod(z_0: typeof z) {
   // Prevent zod from being extended multiple times
-  if ((<any>z_0).__zm_extended) return;
-  (<any>z_0).__zm_extended = true;
+  if (zod_extended) return;
+  zod_extended = true;
 
   const _refine = z_0.ZodType.prototype.refine;
   z_0.ZodType.prototype.refine = function <T>(
