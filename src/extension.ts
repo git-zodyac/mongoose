@@ -20,7 +20,7 @@ declare module "zod" {
   interface ZodType<
     Output = any,
     Def extends z.ZodTypeDef = z.ZodTypeDef,
-    Input = Output
+    Input = Output,
   > {
     // For future use
   }
@@ -35,12 +35,11 @@ export function extendZod(z_0: typeof z) {
   const _refine = z_0.ZodType.prototype.refine;
   z_0.ZodType.prototype.refine = function <T>(
     check: (arg0: T) => boolean,
-    opts: string | CustomErrorParams | ((arg: T) => CustomErrorParams)
+    opts: string | CustomErrorParams | ((arg: T) => CustomErrorParams),
   ) {
     const zEffect = _refine.bind(this)(check, opts);
 
-    let message: string | undefined | ((v: T) => string | undefined) =
-      undefined;
+    let message: string | undefined | ((v: T) => string | undefined) = undefined;
     if (typeof opts === "string") message = opts;
     else if ("message" in opts) message = opts.message;
 
@@ -104,10 +103,7 @@ export type TzmUUID = ReturnType<typeof createUUID> & {
 };
 
 const createUUID = () => {
-  return z
-    .string()
-    .uuid({ message: "Invalid UUID" })
-    .or(z.instanceof(Types.UUID));
+  return z.string().uuid({ message: "Invalid UUID" }).or(z.instanceof(Types.UUID));
 };
 
 export const zUUID = (): TzmUUID => {

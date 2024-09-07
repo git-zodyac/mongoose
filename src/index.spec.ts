@@ -127,7 +127,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -138,7 +138,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -148,7 +148,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -160,7 +160,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().ref("Company"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -170,7 +170,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -181,7 +181,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -370,9 +370,7 @@ describe("Validation", () => {
 
   test("Nested refinements should work as expected", () => {
     expect((<any>schema.obj.hashes).type[0].validate).toBeDefined();
-    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(
-      Function
-    );
+    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(Function);
     expect((<any>schema.obj.hashes).type[0].validate.message).toBeDefined();
   });
 
