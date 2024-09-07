@@ -21,10 +21,10 @@ bun add @zodyac/zod-mongoose
 
 ## Breaking changes
 > [!WARNING]
-> If you were using ```zId``` or ```zUUID``` before, please replace those with ```z.objectId()``` and ```z.mongoUUID()```.
+> If you were using `zId`, `zUUID`, `z.objectId()`, `z.mongoUUID()` before, please replace those with ```zId()``` and ```zUUID()```.
 
-- ```zId``` is now ```z.objectId()```
-- ```zUUID``` is now ```z.mongoUUID()```
+- ```zId``` is now ```zId(ref?)```
+- ```zUUID``` is now ```zUUID()```
 
 ## Usage
 
@@ -41,8 +41,8 @@ const zUser = z.object({
   age: z.number().min(18).max(100),
   active: z.boolean().default(false),
   access: z.enum(["admin", "user"]).default("user"),
-  companyId: z.objectId("Company"),
-  wearable: z.mongoUUID(),
+  companyId: zId("Company"),
+  wearable: zUUID(),
   address: z.object({
     street: z.string(),
     city: z.string(),
@@ -126,7 +126,7 @@ const model = model("User", new Schema(schema, {
 ```
 
 ## ObjectID and UUID
-You can use ```z.objectId(ref?: string)``` and ```z.mongoUUID()``` to describe fields as ObjectID and UUID and add reference to another collection:
+You can use ```zId(ref?: string)``` and ```zUUID()``` to describe fields as ObjectID and UUID and add reference to another collection:
 
 ```typescript
 import { extendZod } from "@zodyac/zod-mongoose";
@@ -135,10 +135,10 @@ import { z } from "zod"
 extendZod(z);
 
 const zUser = z.object({
-  someId: z.objectId(),
-  companyId: z.objectId("Company"),
-  facilityId: z.objectId().ref("Facility"),
-  wearable: z.mongoUUID(),
+  someId: zId(),
+  companyId: zId("Company"),
+  facilityId: zId().ref("Facility"),
+  wearable: zUUID(),
 });
 ```
 

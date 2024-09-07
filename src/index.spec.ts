@@ -1,7 +1,6 @@
 import { Schema, SchemaTypes, Types } from "mongoose";
 import { z } from "zod";
-import { extendZod } from "./extension";
-import zodSchema, { zodSchemaRaw } from "./index";
+import zodSchema, { extendZod, zId, zodSchemaRaw, zUUID } from "./index";
 
 extendZod(z);
 
@@ -17,9 +16,9 @@ const EXAMPLE_SCHEMA = z.object({
   active: z.boolean().default(false),
   access: z.enum(["admin", "user"]).default("user"),
   unique_num: z.number().unique(),
-  wearable: z.mongoUUID().unique(),
-  devices: z.mongoUUID().array(),
-  companyId: z.objectId("Company"),
+  wearable: zUUID().unique(),
+  devices: zUUID().array(),
+  companyId: zId("Company"),
   address: z.object({
     street: z.string(),
     city: z.string(),
@@ -29,14 +28,14 @@ const EXAMPLE_SCHEMA = z.object({
   filters: z.array(z.string()).default(["default_filter"]),
   createdAt: z.date(),
   updatedAt: z.date().optional(),
-  last_known_device: z.mongoUUID().optional(),
+  last_known_device: zUUID().optional(),
   phone: z
     .string()
     .unique()
     .refine((v) => v.length === 10, "Must be a valid phone number"),
 
-  curator: z.objectId().optional(),
-  unique_id: z.objectId().unique(),
+  curator: zId().optional(),
+  unique_id: zId().unique(),
   unique_date: z.date().unique(),
   nullable_field: z.string().nullable(),
   hashes: z
@@ -79,77 +78,77 @@ describe("Overall", () => {
 });
 
 describe("Helpers", () => {
-  test("z.objectId() should represent valid ObjectID", () => {
+  test("zId() should represent valid ObjectID", () => {
     const id = new Types.ObjectId();
-    const parsed = z.objectId().safeParse(id);
+    const parsed = zId().safeParse(id);
     expect(parsed.success).toBe(true);
     expect(parsed.data).toBe(id);
   });
 
-  test("z.objectId() should represent a string in ObjectID format", () => {
+  test("zId() should represent a string in ObjectID format", () => {
     const id = new Types.ObjectId().toString();
-    const parsed = z.objectId().safeParse(id);
+    const parsed = zId().safeParse(id);
     expect(parsed.success).toBe(true);
     expect(parsed.data).toBe(id);
   });
 
-  test("z.mongoUUID() should represent a valid UUID", () => {
+  test("zUUID() should represent a valid UUID", () => {
     const id = new Types.UUID();
-    const parsed = z.mongoUUID().safeParse(id);
+    const parsed = zUUID().safeParse(id);
     expect(parsed.success).toBe(true);
     expect(parsed.data).toBe(id);
   });
 
-  test("z.objectId() should not represent an invalid ObjectID", () => {
+  test("zId() should not represent an invalid ObjectID", () => {
     const id = "invalid";
-    const parsed = z.objectId().safeParse(id);
+    const parsed = zId().safeParse(id);
     expect(parsed.success).toBe(false);
   });
 
-  test("z.mongoUUID() should not represent an invalid UUID", () => {
+  test("zUUID() should not represent an invalid UUID", () => {
     const id = "invalid";
-    const parsed = z.mongoUUID().safeParse(id);
+    const parsed = zUUID().safeParse(id);
     expect(parsed.success).toBe(false);
   });
 
-  test("z.objectId() should not represent an invalid UUID", () => {
+  test("zId() should not represent an invalid UUID", () => {
     const id = new Types.UUID();
-    const parsed = z.objectId().safeParse(id);
+    const parsed = zId().safeParse(id);
     expect(parsed.success).toBe(false);
   });
 
-  test("z.mongoUUID() should not represent an invalid ObjectID", () => {
+  test("zUUID() should not represent an invalid ObjectID", () => {
     const id = new Types.ObjectId();
-    const parsed = z.mongoUUID().safeParse(id);
+    const parsed = zUUID().safeParse(id);
     expect(parsed.success).toBe(false);
   });
 
-  test("z.objectId() should support being optional", () => {
+  test("zId() should support being optional", () => {
     const schema = zodSchema(
       z.object({
-        id: z.objectId().optional(),
-      }),
+        id: zId().optional(),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
   });
 
-  test("z.objectId(ref) should define reference when created", () => {
+  test("zId(ref) should define reference when created", () => {
     const schema = zodSchema(
       z.object({
-        id: z.objectId("Company"),
-      }),
+        id: zId("Company"),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
-  test("z.objectId(ref) should support being optional", () => {
+  test("zId(ref) should support being optional", () => {
     const schema = zodSchema(
       z.object({
-        id: z.objectId("Company").optional(),
-      }),
+        id: zId("Company").optional(),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -157,32 +156,32 @@ describe("Helpers", () => {
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
-  test("z.objectId().ref(ref) should define reference", () => {
+  test("zId().ref(ref) should define reference", () => {
     const schema = zodSchema(
       z.object({
-        id: z.objectId().ref("Company"),
-      }),
+        id: zId().ref("Company"),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
-  test("z.objectId() should support being optional", () => {
+  test("zId() should support being optional", () => {
     const schema = zodSchema(
       z.object({
-        id: z.objectId().optional(),
-      }),
+        id: zId().optional(),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
   });
 
-  test("z.mongoUUID() should support being optional", () => {
+  test("zUUID() should support being optional", () => {
     const schema = zodSchema(
       z.object({
-        id: z.mongoUUID().optional(),
-      }),
+        id: zUUID().optional(),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -371,7 +370,9 @@ describe("Validation", () => {
 
   test("Nested refinements should work as expected", () => {
     expect((<any>schema.obj.hashes).type[0].validate).toBeDefined();
-    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(Function);
+    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(
+      Function
+    );
     expect((<any>schema.obj.hashes).type[0].validate.message).toBeDefined();
   });
 

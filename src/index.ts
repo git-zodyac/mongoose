@@ -37,7 +37,7 @@ export * from "./extension.js";
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: z.objectId('Company'),
+ *   companyId: zId('Company'),
  *   address: z.object({
  *     street: z.string(),
  *     city: z.string(),
@@ -76,7 +76,7 @@ export function zodSchema<T extends ZodRawShape>(
  *   age: z.number().min(18).max(100),
  *   active: z.boolean().default(false),
  *   access: z.enum(['admin', 'user']).default('user'),
- *   companyId: z.objectId('Company'),
+ *   companyId: zId('Company'),
  *   address: z.object({
  *    street: z.string(),
  *    city: z.string(),

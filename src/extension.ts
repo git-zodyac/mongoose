@@ -1,5 +1,4 @@
 import { Types, isValidObjectId } from "mongoose";
-import type { zm } from "mongoose.types";
 import { type CustomErrorParams, z } from "zod";
 
 declare module "zod" {
@@ -18,15 +17,10 @@ declare module "zod" {
     __zm_unique: boolean;
   }
 
-  namespace z {
-    function objectId(ref?: string): zm.zID;
-    function mongoUUID(): zm.zUUID;
-  }
-
   interface ZodType<
     Output = any,
     Def extends z.ZodTypeDef = z.ZodTypeDef,
-    Input = Output,
+    Input = Output
   > {
     // For future use
   }
@@ -41,11 +35,12 @@ export function extendZod(z_0: typeof z) {
   const _refine = z_0.ZodType.prototype.refine;
   z_0.ZodType.prototype.refine = function <T>(
     check: (arg0: T) => boolean,
-    opts: string | CustomErrorParams | ((arg: T) => CustomErrorParams),
+    opts: string | CustomErrorParams | ((arg: T) => CustomErrorParams)
   ) {
     const zEffect = _refine.bind(this)(check, opts);
 
-    let message: string | undefined | ((v: T) => string | undefined) = undefined;
+    let message: string | undefined | ((v: T) => string | undefined) =
+      undefined;
     if (typeof opts === "string") message = opts;
     else if ("message" in opts) message = opts.message;
 
@@ -71,41 +66,59 @@ export function extendZod(z_0: typeof z) {
     this.__zm_unique = arg;
     return this;
   };
-
-  (<any>z_0).objectId = (ref?: string) => {
-    const output = z
-      .string()
-      .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
-      .or(z.instanceof(Types.ObjectId));
-
-    (<any>output).__zm_type = "ObjectId";
-    (<any>output).__zm_ref = ref;
-
-    (<any>output).ref = function (ref: string) {
-      (<any>this).__zm_ref = ref;
-      return this;
-    };
-
-    (<any>output).unique = function (val = true) {
-      (<any>this).__zm_unique = val;
-      return this;
-    };
-
-    return output;
-  };
-
-  (<any>z_0).mongoUUID = () => {
-    const output = z
-      .string()
-      .uuid({ message: "Invalid UUID" })
-      .or(z.instanceof(Types.UUID).describe("UUID"));
-    (<any>output).__zm_type = "UUID";
-
-    (<any>output).unique = function (val = true) {
-      (<any>this).__zm_unique = val;
-      return this;
-    };
-
-    return output;
-  };
 }
+
+export type TzmId = ReturnType<typeof createId> & {
+  unique: (arg?: boolean) => TzmId;
+  ref: (arg: string) => TzmId;
+};
+
+const createId = () => {
+  return z
+    .string()
+    .refine((v) => isValidObjectId(v), { message: "Invalid ObjectId" })
+    .or(z.instanceof(Types.ObjectId));
+};
+
+export const zId = (ref?: string): TzmId => {
+  const output = createId();
+
+  (<any>output).__zm_type = "ObjectId";
+  (<any>output).__zm_ref = ref;
+
+  (<any>output).ref = function (ref: string) {
+    (<any>this).__zm_ref = ref;
+    return this;
+  };
+
+  (<any>output).unique = function (val = true) {
+    (<any>this).__zm_unique = val;
+    return this;
+  };
+
+  return output as TzmId;
+};
+
+export type TzmUUID = ReturnType<typeof createUUID> & {
+  unique: (arg?: boolean) => TzmUUID;
+};
+
+const createUUID = () => {
+  return z
+    .string()
+    .uuid({ message: "Invalid UUID" })
+    .or(z.instanceof(Types.UUID));
+};
+
+export const zUUID = (): TzmUUID => {
+  const output = createUUID();
+
+  (<any>output).__zm_type = "UUID";
+
+  (<any>output).unique = function (val = true) {
+    (<any>this).__zm_unique = val;
+    return this;
+  };
+
+  return output as TzmUUID;
+};
