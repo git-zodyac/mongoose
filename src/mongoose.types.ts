@@ -1,4 +1,4 @@
-import type { SchemaTypes, Types } from "mongoose";
+import { SchemaTypes, Types } from "mongoose";
 import type { ZodType, z } from "zod";
 
 export namespace zm {
@@ -78,7 +78,9 @@ export namespace zm {
     | ObjectConstructor
     | DateConstructor
     | BooleanConstructor
-    | BigIntConstructor;
+    | BigIntConstructor
+    | typeof SchemaTypes.ObjectId
+    | typeof SchemaTypes.UUID;
 
   export interface mMap<T, K> extends _Field<Map<T, K>> {
     type: typeof Map;

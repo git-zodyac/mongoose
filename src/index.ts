@@ -1,22 +1,13 @@
 import { Schema, type SchemaOptions, SchemaTypes } from "mongoose";
 import {
-  ZodArray,
-  ZodDate,
-  ZodDefault,
-  ZodEffects,
-  ZodEnum,
-  ZodMap,
-  ZodNullable,
   ZodNumber,
   ZodObject,
-  ZodOptional,
   type ZodRawShape,
-  ZodRecord,
   ZodString,
   type ZodType,
-  ZodUnion,
-  type z,
+  type z
 } from "zod";
+import { zmAssert } from "./helpers.js";
 import type { zm } from "./mongoose.types.js";
 export * from "./extension.js";
 
@@ -53,7 +44,7 @@ export * from "./extension.js";
  */
 export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
-  options?: SchemaOptions<any>, // TODO: Fix any
+  options?: SchemaOptions<any> // TODO: Fix any
 ): Schema<z.infer<typeof schema>> {
   const definition = parseObject(schema);
   return new Schema<z.infer<typeof schema>>(definition, options);
@@ -91,7 +82,9 @@ export function zodSchema<T extends ZodRawShape>(
  * const schema = new Schema(rawSchema);
  * const userModel = model('User', schema);
  */
-export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._Schema<T> {
+export function zodSchemaRaw<T extends ZodRawShape>(
+  schema: ZodObject<T>
+): zm._Schema<T> {
   return parseObject(schema);
 }
 
@@ -116,105 +109,107 @@ function parseField<T>(
   field: ZodType<T>,
   required = true,
   def?: T,
-  refinement?: zm.EffectValidator<T>,
+  refinement?: zm.EffectValidator<T>
 ): zm.mField | null {
-  const field_type = field.constructor.name;
-
-  if ("__zm_type" in field && field.__zm_type === "ObjectId") {
+  if (zmAssert.objectId(field)) {
     const ref = (<any>field).__zm_ref;
     const unique = (<any>field).__zm_unique;
     return parseObjectId(required, ref, unique);
   }
 
-  if ("__zm_type" in field && field.__zm_type === "UUID") {
+  if (zmAssert.uuid(field)) {
     const unique = (<any>field).__zm_unique;
     return parseUUID(required, unique);
   }
 
-  if (field instanceof ZodObject) {
+  if (zmAssert.object(field)) {
     return parseObject(field);
   }
 
-  if (field instanceof ZodNumber) {
+  if (zmAssert.number(field)) {
     const isUnique = field.__zm_unique ?? false;
     return parseNumber(
       field,
       required,
       def as number,
       isUnique,
-      refinement as zm.EffectValidator<number>,
+      refinement as zm.EffectValidator<number>
     );
   }
 
-  if (field instanceof ZodString) {
+  if (zmAssert.string(field)) {
     const isUnique = field.__zm_unique ?? false;
     return parseString(
       field,
       required,
       def as string,
       isUnique,
-      refinement as zm.EffectValidator<string>,
+      refinement as zm.EffectValidator<string>
     );
   }
 
-  if (field instanceof ZodEnum) {
+  if (zmAssert.enumerable(field)) {
     return parseEnum(Object.keys(field.Values), required, def as string);
   }
 
-  if (field_type === "ZodBoolean") {
+  if (zmAssert.boolean(field)) {
     return parseBoolean(required, def as boolean);
   }
 
-  if (field instanceof ZodDate) {
+  if (zmAssert.date(field)) {
     const isUnique = field.__zm_unique ?? false;
     return parseDate(
       required,
       def as Date,
       refinement as zm.EffectValidator<Date>,
-      isUnique,
+      isUnique
     );
   }
 
-  if (field instanceof ZodArray) {
+  if (zmAssert.array(field)) {
     return parseArray(
       required,
       field.element,
-      def as T extends Array<infer K> ? K[] : never,
+      def as T extends Array<infer K> ? K[] : never
     );
   }
 
-  if (field instanceof ZodDefault) {
-    return parseField(field._def.innerType, required, field._def.defaultValue());
+  if (zmAssert.def(field)) {
+    return parseField(
+      field._def.innerType,
+      required,
+      field._def.defaultValue()
+    );
   }
 
-  if (field instanceof ZodOptional) {
+  if (zmAssert.optional(field)) {
     return parseField(field._def.innerType, false, undefined);
   }
 
-  if (field instanceof ZodNullable) {
+  if (zmAssert.nullable(field)) {
     return parseField(field._def.innerType, false, def || null);
   }
 
-  if (field instanceof ZodUnion) {
+  if (zmAssert.union(field)) {
     return parseField(field._def.options[0]);
   }
 
-  if (field_type === "ZodAny") {
+  if (zmAssert.any(field)) {
     return parseMixed(required, def);
   }
 
-  if (field instanceof ZodMap || field instanceof ZodRecord) {
+  if (zmAssert.mapOrRecord(field)) {
     return parseMap(
       required,
       field.keySchema,
       def as Map<
         zm.UnwrapZodType<typeof field.keySchema>,
         zm.UnwrapZodType<typeof field.valueSchema>
-      >,
+      >
     );
   }
 
-  if (field instanceof ZodEffects) {
+  if (zmAssert.effect(field)) {
     const effect = field._def.effect;
 
     if (effect.type === "refinement") {
@@ -231,7 +226,7 @@ function parseNumber(
   required = true,
   def?: number,
   unique = false,
-  validate?: zm.EffectValidator<number>,
+  validate?: zm.EffectValidator<number>
 ): zm.mNumber {
   const output: zm.mNumber = {
     type: Number,
@@ -251,7 +246,7 @@ function parseString(
   required = true,
   def?: string,
   unique = false,
-  validate?: zm.EffectValidator<string>,
+  validate?: zm.EffectValidator<string>
 ): zm.mString {
   const output: zm.mString = {
     type: String,
@@ -266,7 +261,11 @@ function parseString(
   return output;
 }
 
-function parseEnum(values: string[], required = true, def?: string): zm.mString {
+function parseEnum(
+  values: string[],
+  required = true,
+  def?: string
+): zm.mString {
   return {
     type: String,
     unique: false,
@@ -288,7 +287,7 @@ function parseDate(
   required = true,
   def?: Date,
   validate?: zm.EffectValidator<Date>,
-  unique = false,
+  unique = false
 ): zm.mDate {
   const output: zm.mDate = {
     type: Date,
@@ -301,7 +300,11 @@ function parseDate(
   return output;
 }
 
-function parseObjectId(required = true, ref?: string, unique = false): zm.mObjectId {
+function parseObjectId(
+  required = true,
+  ref?: string,
+  unique = false
+): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
@@ -313,7 +316,11 @@ function parseObjectId(required = true, ref?: string, unique = false): zm.mObjec
 }
 
 // biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
-function parseArray<T>(required = true, element: ZodType<T>, def?: T[]): zm.mArray<T> {
+function parseArray<T>(
+  required = true,
+  element: ZodType<T>,
+  def?: T[]
+): zm.mArray<T> {
   const innerType = parseField(element);
   if (!innerType) throw new Error("Unsupported array type");
   return {
@@ -327,7 +334,7 @@ function parseMap<T, K>(
   // biome-ignore lint/style/useDefaultParameterLast: Consistency
   required = true,
   key: ZodType<T>,
-  def?: Map<NoInfer<T>, K>,
+  def?: Map<NoInfer<T>, K>
 ): zm.mMap<T, K> {
   const pointer = typeConstructor(key);
   return {
@@ -340,13 +347,17 @@ function parseMap<T, K>(
 
 function typeConstructor<T>(t: ZodType<T>) {
   switch (true) {
-    case t instanceof ZodString:
+    case zmAssert.string(t):
       return String;
-    case t instanceof ZodEnum:
+    case zmAssert.enumerable(t):
       return String;
-    case t instanceof ZodNumber:
+    case zmAssert.uuid(t):
+      return SchemaTypes.UUID;
+    case zmAssert.objectId(t):
+      return SchemaTypes.ObjectId;
+    case zmAssert.number(t):
       return Number;
-    case t instanceof ZodDate:
+    case zmAssert.date(t):
       return Date;
     default:
       return undefined;
