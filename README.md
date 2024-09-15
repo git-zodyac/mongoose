@@ -7,6 +7,8 @@
 
 This package provides a function to convert [zod](https://www.npmjs.com/package/zod) object to [mongoose](https://www.npmjs.com/package/mongoose) schema.
 
+> [!NOTE] This package is in early development stage. Please report any issues you find and please expect API to change in minor versions.
+
 ## Installation
 
 ```bash
@@ -89,7 +91,7 @@ userModel.find({ name: "John" });
 - ✅ Unique for String, Number, Date, ObjectId and UUID
 
 - ⚠️ Record (Being converted to Map)
-- ⚠️ Unions (not supported by mongoose, will pick first inner type)
+- ⚠️ Unions (Not supported by mongoose, will pick first inner type)
 
 - ❗️ Intersection (not supported by mongoose)
 - ❗️ Set (not supported by mongoose)

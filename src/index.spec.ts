@@ -49,6 +49,8 @@ const EXAMPLE_SCHEMA = z.object({
   access_map: z.map(z.enum(["admin", "user"]), z.object({ value: z.number() })),
   sessions: z.record(z.date(), z.string()),
   notes: z.any(),
+  devices_last_seen: z.record(zUUID(), z.date()),
+  last_contacted: z.record(zId(), z.date()),
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
@@ -127,7 +129,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -138,7 +140,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company"),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -148,7 +150,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company").optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -160,7 +162,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().ref("Company"),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -170,7 +172,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -181,7 +183,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -297,11 +299,22 @@ describe("Supported types", () => {
     expect((<any>schema.obj.sessions).of).toBe(Date);
   });
 
+
   test("Record should have correct type", () => {
     if (!schema.obj.sessions) throw new Error("No sessions definition");
 
     expect((<any>schema.obj.sessions).type).toBe(Map);
     expect((<any>schema.obj.sessions).of).toBe(Date);
+  });
+
+  test("Complex Record should have correct type", () => {
+    if (!schema.obj.sessions) throw new Error("No sessions definition");
+
+    expect((<any>schema.obj.devices_last_seen).type).toBe(Map);
+    expect((<any>schema.obj.devices_last_seen).of).toBe(SchemaTypes.UUID);
+
+    expect((<any>schema.obj.last_contacted).type).toBe(Map);
+    expect((<any>schema.obj.last_contacted).of).toBe(SchemaTypes.ObjectId);
   });
 
   test("Array of objects should have correct type", () => {
@@ -370,7 +383,9 @@ describe("Validation", () => {
 
   test("Nested refinements should work as expected", () => {
     expect((<any>schema.obj.hashes).type[0].validate).toBeDefined();
-    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(Function);
+    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(
+      Function
+    );
     expect((<any>schema.obj.hashes).type[0].validate.message).toBeDefined();
   });
 
