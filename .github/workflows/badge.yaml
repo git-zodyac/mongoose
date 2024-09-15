@@ -2,6 +2,9 @@ name: Create badges
 
 on:
   push:
+    paths:
+      - "src/**"
+
     branches:
       - main
       - develop
