@@ -1,4 +1,4 @@
-import { SchemaTypes, Types } from "mongoose";
+import type { SchemaTypes, Types } from "mongoose";
 import type { ZodType, z } from "zod";
 
 export namespace zm {

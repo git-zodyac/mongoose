@@ -1,4 +1,4 @@
-import {
+import type {
   ZodAny,
   ZodArray,
   ZodBoolean,
@@ -74,12 +74,8 @@ export namespace zmAssert {
     return f.constructor.name === "ZodAny";
   }
 
-  export function mapOrRecord(
-    f: ZodType<any>
-  ): f is ZodMap<any> | ZodRecord<any> {
-    return (
-      f.constructor.name === "ZodMap" || f.constructor.name === "ZodRecord"
-    );
+  export function mapOrRecord(f: ZodType<any>): f is ZodMap<any> | ZodRecord<any> {
+    return f.constructor.name === "ZodMap" || f.constructor.name === "ZodRecord";
   }
 
   export function effect(f: ZodType<any>): f is ZodEffects<any> {
