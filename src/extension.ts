@@ -35,13 +35,15 @@ export function extendZod(z_0: typeof z) {
   const _refine = z_0.ZodType.prototype.refine;
   z_0.ZodType.prototype.refine = function <T>(
     check: (arg0: T) => boolean,
-    opts: string | CustomErrorParams | ((arg: T) => CustomErrorParams),
+    opts?: string | CustomErrorParams | ((arg: T) => CustomErrorParams),
   ) {
     const zEffect = _refine.bind(this)(check, opts);
 
     let message: string | undefined | ((v: T) => string | undefined) = undefined;
-    if (typeof opts === "string") message = opts;
-    else if ("message" in opts) message = opts.message;
+    if (opts) {
+      if (typeof opts === "string") message = opts;
+      else if ("message" in opts) message = opts.message;
+    }
 
     (<any>zEffect._def.effect).__zm_validation = {
       validator: check,
