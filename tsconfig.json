@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noImplicitAny": true,
+    "removeComments": false,
   },
   // "include": ["src/**/*"],
   "exclude": [

@@ -1,13 +1,6 @@
 import { Schema, type SchemaOptions, SchemaTypes } from "mongoose";
-import type {
-  ZodNumber,
-  ZodObject,
-  ZodRawShape,
-  ZodString,
-  ZodType,
-  z,
-} from "zod";
-import { zmAssert } from "./helpers.js";
+import type { ZodNumber, ZodObject, ZodRawShape, ZodString, ZodType, z } from "zod";
+import zmAssert from "./assertions/assertions.js";
 import type { zm } from "./mongoose.types.js";
 export * from "./extension.js";
 
@@ -44,7 +37,7 @@ export * from "./extension.js";
  */
 export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
-  options?: SchemaOptions<any> // TODO: Fix any
+  options?: SchemaOptions<any>, // TODO: Fix any
 ): Schema<z.infer<typeof schema>> {
   const definition = parseObject(schema);
   return new Schema<z.infer<typeof schema>>(definition, options);
@@ -82,9 +75,7 @@ export function zodSchema<T extends ZodRawShape>(
  * const schema = new Schema(rawSchema);
  * const userModel = model('User', schema);
  */
-export function zodSchemaRaw<T extends ZodRawShape>(
-  schema: ZodObject<T>
-): zm._Schema<T> {
+export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._Schema<T> {
   return parseObject(schema);
 }
 
@@ -109,7 +100,7 @@ function parseField<T>(
   field: ZodType<T>,
   required = true,
   def?: T,
-  refinement?: zm.EffectValidator<T>
+  refinement?: zm.EffectValidator<T>,
 ): zm.mField | null {
   if (zmAssert.objectId(field)) {
     const ref = (<any>field).__zm_ref;
@@ -133,7 +124,7 @@ function parseField<T>(
       required,
       def as number,
       isUnique,
-      refinement as zm.EffectValidator<number>
+      refinement as zm.EffectValidator<number>,
     );
   }
 
@@ -144,7 +135,7 @@ function parseField<T>(
       required,
       def as string,
       isUnique,
-      refinement as zm.EffectValidator<string>
+      refinement as zm.EffectValidator<string>,
     );
   }
 
@@ -162,7 +153,7 @@ function parseField<T>(
       required,
       def as Date,
       refinement as zm.EffectValidator<Date>,
-      isUnique
+      isUnique,
     );
   }
 
@@ -170,16 +161,12 @@ function parseField<T>(
     return parseArray(
       required,
       field.element,
-      def as T extends Array<infer K> ? K[] : never
+      def as T extends Array<infer K> ? K[] : never,
     );
   }
 
   if (zmAssert.def(field)) {
-    return parseField(
-      field._def.innerType,
-      required,
-      field._def.defaultValue()
-    );
+    return parseField(field._def.innerType, required, field._def.defaultValue());
   }
 
   if (zmAssert.optional(field)) {
@@ -205,7 +192,7 @@ function parseField<T>(
       def as Map<
         zm.UnwrapZodType<typeof field.keySchema>,
         zm.UnwrapZodType<typeof field.valueSchema>
-      >
+      >,
     );
   }
 
@@ -226,7 +213,7 @@ function parseNumber(
   required = true,
   def?: number,
   unique = false,
-  validate?: zm.EffectValidator<number>
+  validate?: zm.EffectValidator<number>,
 ): zm.mNumber {
   const output: zm.mNumber = {
     type: Number,
@@ -246,7 +233,7 @@ function parseString(
   required = true,
   def?: string,
   unique = false,
-  validate?: zm.EffectValidator<string>
+  validate?: zm.EffectValidator<string>,
 ): zm.mString {
   const output: zm.mString = {
     type: String,
@@ -261,11 +248,7 @@ function parseString(
   return output;
 }
 
-function parseEnum(
-  values: string[],
-  required = true,
-  def?: string
-): zm.mString {
+function parseEnum(values: string[], required = true, def?: string): zm.mString {
   return {
     type: String,
     unique: false,
@@ -287,7 +270,7 @@ function parseDate(
   required = true,
   def?: Date,
   validate?: zm.EffectValidator<Date>,
-  unique = false
+  unique = false,
 ): zm.mDate {
   const output: zm.mDate = {
     type: Date,
@@ -300,11 +283,7 @@ function parseDate(
   return output;
 }
 
-function parseObjectId(
-  required = true,
-  ref?: string,
-  unique = false
-): zm.mObjectId {
+function parseObjectId(required = true, ref?: string, unique = false): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
@@ -319,7 +298,7 @@ function parseArray<T>(
   // biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
   required = true,
   element: ZodType<T>,
-  def?: T[]
+  def?: T[],
 ): zm.mArray<T> {
   const innerType = parseField(element);
   if (!innerType) throw new Error("Unsupported array type");
@@ -334,7 +313,7 @@ function parseMap<T, K>(
   // biome-ignore lint/style/useDefaultParameterLast: Consistency with other functions
   required = true,
   key: ZodType<T>,
-  def?: Map<NoInfer<T>, K>
+  def?: Map<NoInfer<T>, K>,
 ): zm.mMap<T, K> {
   const pointer = typeConstructor(key);
   return {

@@ -27,11 +27,36 @@ declare module "zod" {
 }
 
 let zod_extended = false;
+/**
+ * Extends the Zod library with additional functionality.
+ *
+ * This function modifies the Zod library to add custom validation and uniqueness checks.
+ * It ensures that the extension is only applied once.
+ *
+ * @param z_0 - The Zod library to extend.
+ *
+ * @remarks
+ * - Overrides `refine` method to `ZodType` that includes additional metadata for validation.
+ * - Overrides `unique` method to `ZodString`, `ZodNumber`, and `ZodDate` to mark them as unique.
+ *
+ * @example
+ * ```typescript
+ * import { z } from "zod";
+ * import { extendZod } from "./extension";
+ *
+ * extendZod(z);
+ *
+ * const schema = z.object({
+ *   name: z.string().unique();
+ * });
+ * ```
+ */
 export function extendZod(z_0: typeof z) {
   // Prevent zod from being extended multiple times
   if (zod_extended) return;
   zod_extended = true;
 
+  // Refine support
   const _refine = z_0.ZodType.prototype.refine;
   z_0.ZodType.prototype.refine = function <T>(
     check: (arg0: T) => boolean,
@@ -53,6 +78,7 @@ export function extendZod(z_0: typeof z) {
     return zEffect;
   };
 
+  // Unique support
   z_0.ZodString.prototype.unique = function (arg = true) {
     this.__zm_unique = arg;
     return this;
@@ -67,6 +93,29 @@ export function extendZod(z_0: typeof z) {
     this.__zm_unique = arg;
     return this;
   };
+
+  // Assign static names to Zod types
+  const TypesMap = {
+    String: z_0.ZodString,
+    Number: z_0.ZodNumber,
+    Object: z_0.ZodObject,
+    Array: z_0.ZodArray,
+    Boolean: z_0.ZodBoolean,
+    Enum: z_0.ZodEnum,
+    Date: z_0.ZodDate,
+    Default: z_0.ZodDefault,
+    Optional: z_0.ZodOptional,
+    Nullable: z_0.ZodNullable,
+    Union: z_0.ZodUnion,
+    Any: z_0.ZodAny,
+    Map: z_0.ZodMap,
+    Record: z_0.ZodRecord,
+    Effects: z_0.ZodEffects,
+  };
+
+  for (const [key, value] of Object.entries(TypesMap)) {
+    (<any>value.prototype).__zm_type = key;
+  }
 }
 
 export type TzmId = ReturnType<typeof createId> & {
