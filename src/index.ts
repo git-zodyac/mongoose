@@ -1,5 +1,11 @@
 import { zm } from "./mongoose.types.js";
-import { Schema, SchemaTypes, Types, isValidObjectId } from "mongoose";
+import {
+  DefaultSchemaOptions,
+  Schema,
+  SchemaTypes,
+  Types,
+  isValidObjectId,
+} from "mongoose";
 import {
   ZodAny,
   ZodArray,
@@ -49,9 +55,14 @@ import {
  */
 export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
+  options?: DefaultSchemaOptions,
+  root: boolean = true,
 ): Schema<z.infer<typeof schema>> {
-  const definition = parseObject(schema);
-  return new Schema<z.infer<typeof schema>>(definition);
+  const mongooseSchemaDef = parseObject(schema);
+  return new Schema<z.infer<typeof schema>>(mongooseSchemaDef, {
+    _id: root,
+    ...options,
+  });
 }
 
 /**
@@ -147,7 +158,11 @@ function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
   const object: any = {};
   for (const [key, field] of Object.entries(obj.shape)) {
     if (field instanceof ZodObject) {
-      object[key] = parseObject(field);
+      object[key] = {
+        type: zodSchema(field, undefined, false),
+        required: true,
+        default: {},
+      };
     } else {
       const f = parseField(field);
       if (f) object[key] = f;
@@ -213,6 +228,11 @@ function parseField<T>(
   }
 
   if (field instanceof ZodOptional) {
+    if (field._def.innerType instanceof ZodObject)
+      return {
+        type: zodSchema(field._def.innerType, undefined, false),
+        required: false,
+      };
     return parseField(field._def.innerType, false, undefined);
   }
 
