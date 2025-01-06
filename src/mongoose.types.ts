@@ -1,4 +1,4 @@
-import type { SchemaTypes, Types } from "mongoose";
+import type { SchemaDefinition, SchemaTypeOptions, SchemaTypes, Types } from "mongoose";
 import type { ZodType, z } from "zod";
 
 export namespace zm {
@@ -93,19 +93,17 @@ export namespace zm {
     | mNumber
     | mBoolean
     | mDate
-
     // IDs
     | mObjectId
     | mUUID
-
     // Mixed types
     | mMixed<unknown>
     | mArray<unknown>
     | _Schema<unknown>
     | mMap<unknown, unknown>;
 
-  export type _Schema<T> = {
-    [K in keyof T]: _Field<T[K]> | _Schema<T[K]>;
+  export type _Schema<T> = SchemaDefinition & {
+    [K in keyof T]: (_Field<T[K]> & SchemaTypeOptions<T[K]>) | _Schema<T[K]>;
   };
 
   export type UnwrapZodType<T> = T extends ZodType<infer K> ? K : never;

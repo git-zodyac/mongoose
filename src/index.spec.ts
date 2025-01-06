@@ -77,6 +77,13 @@ describe("Overall", () => {
       expect(key in obj).toBe(true);
     }
   });
+
+  test("zodSchema should support mongoose field options", () => {
+    const schema = zodSchemaRaw(EXAMPLE_SCHEMA);
+    schema.phone.index = true;
+
+    expect(schema.phone.index).toBe(true);
+  });
 });
 
 describe("Helpers", () => {
