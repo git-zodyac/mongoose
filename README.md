@@ -5,9 +5,12 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/min/%40zodyac%2Fzod-mongoose)
 ![Test coverage](./badges/coverage.svg)
 
-This package provides a function to convert [zod](https://www.npmjs.com/package/zod) object to [mongoose](https://www.npmjs.com/package/mongoose) schema.
+This package provides a function to convert
+[zod](https://www.npmjs.com/package/zod) object to
+[mongoose](https://www.npmjs.com/package/mongoose) schema.
 
-> [!NOTE] This package is in early development stage. Please report any issues you find and please expect API to change in minor versions.
+> [!NOTE] This package is in early development stage. Please report any issues
+> you find and please expect API to change in minor versions.
 
 ## Installation
 
@@ -22,21 +25,23 @@ bun add @zodyac/zod-mongoose
 ```
 
 ## Breaking changes
-> [!WARNING]
-> If you were using `zId`, `zUUID`, `z.objectId()`, `z.mongoUUID()` before, please replace those with ```zId()``` and ```zUUID()```.
 
-- ```zId``` is now ```zId(ref?)```
-- ```zUUID``` is now ```zUUID()```
+> [!WARNING]
+> If you were using `zId`, `zUUID`, `z.objectId()`, `z.mongoUUID()` before,
+> please replace those with `zId()` and `zUUID()`.
+
+- `zId` is now `zId(ref?)`
+- `zUUID` is now `zUUID()`
 
 ## Usage
 
-First, extend Zod with ```extendZod```, then create your zod schema:
+First, extend Zod with `extendZod`, then create your zod schema:
 
 ```typescript
 import { z } from "zod";
 import { extendZod } from "@zodyac/zod-mongoose";
 
-extend(z);
+extendZod(z);
 
 const zUser = z.object({
   name: z.string().min(3).max(255),
@@ -72,10 +77,11 @@ That's it! Now you can use your mongoose model as usual:
 userModel.find({ name: "John" });
 ```
 
-> [Note]
-```extendZod``` should be called once for the whole application.
+> [Note] `extendZod` should be called once for the whole application.
 
 ## Features
+
+Full support list can be found in [SUPPORTED.md](./SUPPORTED.md):
 
 - ✅ Basic types
 - ✅ Nested objects and schemas
@@ -111,7 +117,8 @@ console.log(schema.obj);
 
 ## Raw object
 
-If you want to get raw object from zod schema to modify it, you can use `zodSchemaRaw` function:
+If you want to get raw object from zod schema to modify it, you can use
+`zodSchemaRaw` function:
 
 ```typescript
 import { extendZod, zodSchemaRaw } from "@zodyac/zod-mongoose";
@@ -120,19 +127,24 @@ import { model, Schema } from "mongoose";
 extendZod(z);
 
 const schema = zodSchemaRaw(zDoc);
-schema.age.index = true
+schema.age.index = true;
 
-const model = model("User", new Schema(schema, {
-  timestamps: true,
-}));
+const model = model(
+  "User",
+  new Schema(schema, {
+    timestamps: true,
+  }),
+);
 ```
 
 ## ObjectID and UUID
-You can use ```zId(ref?: string)``` and ```zUUID()``` to describe fields as ObjectID and UUID and add reference to another collection:
+
+You can use `zId(ref?: string)` and `zUUID()` to describe fields as ObjectID and
+UUID and add reference to another collection:
 
 ```typescript
 import { extendZod } from "@zodyac/zod-mongoose";
-import { z } from "zod"
+import { z } from "zod";
 
 extendZod(z);
 
@@ -145,6 +157,7 @@ const zUser = z.object({
 ```
 
 ## Validation
+
 You can use zod refinement to validate your mongoose models:
 
 ```typescript
@@ -154,12 +167,17 @@ import { extendZod, zodSchema } from "@zodyac/zod-mongoose";
 extendZod(z);
 
 const zUser = z.object({
-  phone: z.string().refine((v) => v.match(/^\d{3}-\d{3}-\d{4}$/), "Invalid phone number"),
+  phone: z.string().refine(
+    (v) => v.match(/^\d{3}-\d{3}-\d{4}$/),
+    "Invalid phone number",
+  ),
 });
 ```
 
 ## Unique fields
-To make a String, Number or Date unique, call ```.unique()```:
+
+To make a String, Number or Date unique, call `.unique()`:
+
 ```typescript
 import { z } from "zod";
 import { extendZod, zodSchema } from "@zodyac/zod-mongoose";
@@ -177,7 +195,8 @@ const zUser = z.object({
 
 ### ZodUnion types
 
-Union types are not supported by mongoose. If you have a union type in your zod schema, it will be converted to it's inner type by default.
+Union types are not supported by mongoose. If you have a union type in your zod
+schema, it will be converted to it's inner type by default.
 
 ```typescript
 const zUser = z.object({
@@ -193,20 +212,26 @@ const zUser = z.object({
 ```
 
 ### ZodAny
-`ZodAny` is converted to `SchemaTypes.Mixed`. It's not recommended to use it, but it's there if you need it.
+
+`ZodAny` is converted to `SchemaTypes.Mixed`. It's not recommended to use it,
+but it's there if you need it.
 
 ### ZodRecord
-`ZodRecord` is converted to `Map` type. It's not recommended to use it, but it's there if you need it.
+
+`ZodRecord` is converted to `Map` type. It's not recommended to use it, but it's
+there if you need it.
 
 ## Contributing
 
-Feel free to open issues and pull requests! Here's a quick guide to get you started:
+Feel free to open issues and pull requests! Here's a quick guide to get you
+started:
+
 - Fork the repository
 - Install linter and formatter for VSCode: Biome
-- Install dependencies: ```npm i```
+- Install dependencies: `npm i`
 - Make changes
-- Run tests: ```npm test```
-- Run linter: ```npm run lint``` (fix with ```npm run lint:fix```)
+- Run tests: `npm test`
+- Run linter: `npm run lint` (fix with `npm run lint:fix`)
 - Commit and push your changes
 - Open a pull request
 
