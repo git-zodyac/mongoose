@@ -139,7 +139,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -150,7 +150,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -160,7 +160,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -172,7 +172,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().ref("Company"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -182,7 +182,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().ref("Company").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -194,7 +194,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().refPath("company"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).refPath).toBe("company");
@@ -204,7 +204,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().refPath("company").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -216,7 +216,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -227,7 +227,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID("Device"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).ref).toBe("Device");
@@ -237,7 +237,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().ref("Device").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -248,7 +248,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().ref("Device"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -259,7 +259,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().ref("Device").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -271,7 +271,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().refPath("device"),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -282,7 +282,7 @@ describe("ID Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().refPath("device").optional(),
-      })
+      }),
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
@@ -482,9 +482,7 @@ describe("Validation", () => {
 
   test("Nested refinements should work as expected", () => {
     expect((<any>schema.obj.hashes).type[0].validate).toBeDefined();
-    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(
-      Function
-    );
+    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(Function);
     expect((<any>schema.obj.hashes).type[0].validate.message).toBeDefined();
   });
 
