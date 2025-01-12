@@ -139,7 +139,7 @@ const model = model(
 
 ## ObjectID and UUID
 
-You can use `zId(ref?: string)` and `zUUID()` to describe fields as ObjectID and
+You can use `zId(ref?: string)` and `zUUID(ref?: string)` to describe fields as ObjectID and
 UUID and add reference to another collection:
 
 ```typescript
@@ -149,10 +149,21 @@ import { z } from "zod";
 extendZod(z);
 
 const zUser = z.object({
+  // Just the ID
   someId: zId(),
-  companyId: zId("Company"),
-  facilityId: zId().ref("Facility"),
   wearable: zUUID(),
+
+  // With reference
+  companyId: zId("Company"), // equivalent to zId().ref("Company")
+  facilityId: zId().ref("Facility"),
+  device: zUUID("Device"), // equivalent to zUUID().ref("Device")
+  badgeId: zUUID().ref("Badge"),
+
+  // `refPath` support
+  storeId: zId().refPath("store"),
+  store: z.string(),
+  proxyId: zUUID().refPath("proxy"),
+  proxy: z.string(),
 });
 ```
 
