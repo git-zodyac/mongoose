@@ -104,13 +104,16 @@ function parseField<T>(
 ): zm.mField | null {
   if (zmAssert.objectId(field)) {
     const ref = (<any>field).__zm_ref;
+    const refPath = (<any>field).__zm_refPath;
     const unique = (<any>field).__zm_unique;
-    return parseObjectId(required, ref, unique);
+    return parseObjectId(required, ref, unique, refPath);
   }
 
   if (zmAssert.uuid(field)) {
+    const ref = (<any>field).__zm_ref;
+    const refPath = (<any>field).__zm_refPath;
     const unique = (<any>field).__zm_unique;
-    return parseUUID(required, unique);
+    return parseUUID(required, ref, unique, refPath);
   }
 
   if (zmAssert.object(field)) {
@@ -283,7 +286,12 @@ function parseDate(
   return output;
 }
 
-function parseObjectId(required = true, ref?: string, unique = false): zm.mObjectId {
+function parseObjectId(
+  required = true,
+  ref?: string,
+  unique = false,
+  refPath?: string,
+): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
@@ -291,6 +299,7 @@ function parseObjectId(required = true, ref?: string, unique = false): zm.mObjec
   };
 
   if (ref) output.ref = ref;
+  if (refPath) output.refPath = refPath;
   return output;
 }
 
@@ -343,12 +352,20 @@ function typeConstructor<T>(t: ZodType<T>) {
   }
 }
 
-function parseUUID(required = true, unique = false): zm.mUUID {
-  return {
+function parseUUID(
+  required = true,
+  ref?: string,
+  unique = false,
+  refPath?: string,
+): zm.mUUID {
+  const output: zm.mUUID = {
     type: SchemaTypes.UUID,
     required,
     unique,
   };
+  if (ref) output.ref = ref;
+  if (refPath) output.refPath = refPath;
+  return output;
 }
 
 function parseMixed(required = true, def?: unknown): zm.mMixed<unknown> {

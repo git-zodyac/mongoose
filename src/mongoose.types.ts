@@ -8,14 +8,22 @@ export namespace zm {
     > {
     __zm_type: "ObjectId";
     __zm_ref?: string;
+    __zm_refPath?: string;
+
     ref: (ref: string) => zID;
     unique: (val?: boolean) => zID;
+    refPath: (ref: string) => zID;
   }
 
   export interface zUUID
     extends z.ZodUnion<[z.ZodString, z.ZodType<Types.UUID, z.ZodTypeDef, Types.UUID>]> {
     __zm_type: "UUID";
-    unique: (val?: boolean) => zID;
+    __zm_ref?: string;
+    __zm_refPath?: string;
+
+    unique: (val?: boolean) => zUUID;
+    ref: (ref: string) => zUUID;
+    refPath: (ref: string) => zUUID;
   }
 
   export interface _Field<T> {
@@ -56,12 +64,14 @@ export namespace zm {
     type: typeof SchemaTypes.ObjectId;
     unique?: boolean;
     ref?: string;
+    refPath?: string;
   }
 
   export interface mUUID extends _Field<Types.UUID> {
     type: typeof SchemaTypes.UUID;
     unique?: boolean;
     ref?: string;
+    refPath?: string;
   }
 
   export interface mArray<K> extends _Field<K[]> {

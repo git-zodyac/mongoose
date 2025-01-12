@@ -115,6 +115,7 @@ export function extendZod(z_0: typeof z) {
 export type TzmId = ReturnType<typeof createId> & {
   unique: (arg?: boolean) => TzmId;
   ref: (arg: string) => TzmId;
+  refPath: (arg: string) => TzmId;
 };
 
 const createId = () => {
@@ -135,6 +136,11 @@ export const zId = (ref?: string): TzmId => {
     return this;
   };
 
+  (<any>output).refPath = function (ref: string) {
+    (<any>this).__zm_refPath = ref;
+    return this;
+  };
+
   (<any>output).unique = function (val = true) {
     (<any>this).__zm_unique = val;
     return this;
@@ -145,16 +151,29 @@ export const zId = (ref?: string): TzmId => {
 
 export type TzmUUID = ReturnType<typeof createUUID> & {
   unique: (arg?: boolean) => TzmUUID;
+  ref: (arg: string) => TzmUUID;
+  refPath: (arg: string) => TzmUUID;
 };
 
 const createUUID = () => {
   return z.string().uuid({ message: "Invalid UUID" }).or(z.instanceof(Types.UUID));
 };
 
-export const zUUID = (): TzmUUID => {
+export const zUUID = (ref?: string): TzmUUID => {
   const output = createUUID();
 
   (<any>output).__zm_type = "UUID";
+  (<any>output).__zm_ref = ref;
+
+  (<any>output).ref = function (ref: string) {
+    (<any>this).__zm_ref = ref;
+    return this;
+  };
+
+  (<any>output).refPath = function (ref: string) {
+    (<any>this).__zm_refPath = ref;
+    return this;
+  };
 
   (<any>output).unique = function (val = true) {
     (<any>this).__zm_unique = val;

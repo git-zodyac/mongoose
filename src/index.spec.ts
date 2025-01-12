@@ -17,6 +17,8 @@ const EXAMPLE_SCHEMA = z.object({
   access: z.enum(["admin", "user"]).default("user"),
   unique_num: z.number().unique(),
   wearable: zUUID().unique(),
+  wearableWithRef: zUUID("Devices").unique(),
+  wearableWithPath: zUUID().unique().refPath("device"),
   devices: zUUID().array(),
   companyId: zId("Company"),
   address: z.object({
@@ -54,7 +56,7 @@ const EXAMPLE_SCHEMA = z.object({
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
-console.log(schema.obj);
+// console.log(schema.obj);
 
 describe("Overall", () => {
   test("Smoke test", () => {
@@ -86,7 +88,8 @@ describe("Overall", () => {
   });
 });
 
-describe("Helpers", () => {
+describe("ID Helpers", () => {
+  // General
   test("zId() should represent valid ObjectID", () => {
     const id = new Types.ObjectId();
     const parsed = zId().safeParse(id);
@@ -136,7 +139,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -147,7 +150,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company"),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
@@ -157,7 +160,7 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId("Company").optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
@@ -169,32 +172,122 @@ describe("Helpers", () => {
     const schema = zodSchema(
       z.object({
         id: zId().ref("Company"),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
-  test("zId() should support being optional", () => {
+  test("zId().ref(ref) should support being optional", () => {
     const schema = zodSchema(
       z.object({
-        id: zId().optional(),
-      }),
+        id: zId().ref("Company").optional(),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
     expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).ref).toBe("Company");
+  });
+
+  test("zId().refPath(ref) should define reference path", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zId().refPath("company"),
+      })
+    );
+
+    expect((<any>schema.obj.id).refPath).toBe("company");
+  });
+
+  test("zId().refPath(ref) should support being optional", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zId().refPath("company").optional(),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
+    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).refPath).toBe("company");
   });
 
   test("zUUID() should support being optional", () => {
     const schema = zodSchema(
       z.object({
         id: zUUID().optional(),
-      }),
+      })
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
     expect((<any>schema.obj.id).required).toBe(false);
+  });
+
+  test("zUUID(ref) should define reference when created", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID("Device"),
+      })
+    );
+
+    expect((<any>schema.obj.id).ref).toBe("Device");
+  });
+
+  test("zUUID(ref) should support being optional", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID().ref("Device").optional(),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.id).required).toBe(false);
+  });
+
+  test("zUUID().ref(ref) should define reference", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID().ref("Device"),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.id).ref).toBe("Device");
+  });
+
+  test("zUUID().ref(ref) should support being optional", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID().ref("Device").optional(),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).ref).toBe("Device");
+  });
+
+  test("zUUID().refPath(ref) should define reference path", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID().refPath("device"),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.id).refPath).toBe("device");
+  });
+
+  test("zUUID().refPath(ref) should support being optional", () => {
+    const schema = zodSchema(
+      z.object({
+        id: zUUID().refPath("device").optional(),
+      })
+    );
+
+    expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).refPath).toBe("device");
   });
 });
 
@@ -389,7 +482,9 @@ describe("Validation", () => {
 
   test("Nested refinements should work as expected", () => {
     expect((<any>schema.obj.hashes).type[0].validate).toBeDefined();
-    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(Function);
+    expect((<any>schema.obj.hashes).type[0].validate.validator).toBeInstanceOf(
+      Function
+    );
     expect((<any>schema.obj.hashes).type[0].validate.message).toBeDefined();
   });
 
