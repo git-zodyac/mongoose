@@ -321,7 +321,7 @@ function parseArray<T>(
 function parseMap<T, K>(
   // biome-ignore lint/style/useDefaultParameterLast: Consistency with other functions
   required = true,
-  valueType: ZodType<T>,
+  valueType: ZodType<K>,
   def?: Map<NoInfer<T>, K>,
 ): zm.mMap<T, K> {
   const pointer = parseField(valueType);
@@ -329,7 +329,7 @@ function parseMap<T, K>(
 
   return {
     type: Map,
-    of: pointer,
+    of: pointer as zm._Field<K>,
     default: def,
     required,
   };
