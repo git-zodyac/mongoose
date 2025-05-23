@@ -191,7 +191,7 @@ function parseField<T>(
   if (zmAssert.mapOrRecord(field)) {
     return parseMap(
       required,
-      field.keySchema,
+      field.valueSchema,
       def as Map<
         zm.UnwrapZodType<typeof field.keySchema>,
         zm.UnwrapZodType<typeof field.valueSchema>
@@ -321,13 +321,15 @@ function parseArray<T>(
 function parseMap<T, K>(
   // biome-ignore lint/style/useDefaultParameterLast: Consistency with other functions
   required = true,
-  key: ZodType<T>,
+  valueType: ZodType<K>,
   def?: Map<NoInfer<T>, K>,
 ): zm.mMap<T, K> {
-  const pointer = typeConstructor(key);
+  const pointer = parseField(valueType);
+  if (!pointer) throw new Error("Unsupported map value type");
+
   return {
     type: Map,
-    of: pointer,
+    of: pointer as zm._Field<K>,
     default: def,
     required,
   };

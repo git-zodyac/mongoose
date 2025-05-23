@@ -393,27 +393,28 @@ describe("Supported types", () => {
     expect((<any>schema.obj.number_map).type).toBe(Map);
     expect((<any>schema.obj.access_map).type).toBe(Map);
 
-    expect((<any>schema.obj.keys).of).toBe(String);
-    expect((<any>schema.obj.number_map).of).toBe(Number);
-    expect((<any>schema.obj.access_map).of).toBe(String);
-    expect((<any>schema.obj.sessions).of).toBe(Date);
+    expect((<any>schema.obj.keys).of.value.type).toBe(Number);
+    expect((<any>schema.obj.number_map).of.value.type).toBe(Number);
+    expect((<any>schema.obj.access_map).of.value.type).toBe(Number);
+
+    expect((<any>schema.obj.sessions).of.type).toBe(String);
   });
 
   test("Record should have correct type", () => {
     if (!schema.obj.sessions) throw new Error("No sessions definition");
 
     expect((<any>schema.obj.sessions).type).toBe(Map);
-    expect((<any>schema.obj.sessions).of).toBe(Date);
+    expect((<any>schema.obj.sessions).of.type).toBe(String);
   });
 
   test("Complex Record should have correct type", () => {
     if (!schema.obj.sessions) throw new Error("No sessions definition");
 
     expect((<any>schema.obj.devices_last_seen).type).toBe(Map);
-    expect((<any>schema.obj.devices_last_seen).of).toBe(SchemaTypes.UUID);
+    expect((<any>schema.obj.devices_last_seen).of.type).toBe(Date);
 
     expect((<any>schema.obj.last_contacted).type).toBe(Map);
-    expect((<any>schema.obj.last_contacted).of).toBe(SchemaTypes.ObjectId);
+    expect((<any>schema.obj.last_contacted).of.type).toBe(Date);
   });
 
   test("Array of objects should have correct type", () => {
