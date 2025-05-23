@@ -94,7 +94,7 @@ export namespace zm {
 
   export interface mMap<T, K> extends _Field<Map<T, K>> {
     type: typeof Map;
-    of?: Constructor;
+    of?: mField;
   }
 
   export type mField =
