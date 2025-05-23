@@ -56,7 +56,7 @@
     "tsup": "^8.0.1",
     "typescript": "^5.5.4"
   },
-  "dependencies": {
+  "peerDependencies": {
     "mongoose": "^8.0.3",
     "zod": "^3.22.4"
   }
