@@ -106,14 +106,16 @@ function parseField<T>(
     const ref = (<any>field).__zm_ref;
     const refPath = (<any>field).__zm_refPath;
     const unique = (<any>field).__zm_unique;
-    return parseObjectId(required, ref, unique, refPath);
+    const sparse = (<any>field).__zm_sparse;
+    return parseObjectId(required, ref, unique, refPath, sparse);
   }
 
   if (zmAssert.uuid(field)) {
     const ref = (<any>field).__zm_ref;
     const refPath = (<any>field).__zm_refPath;
     const unique = (<any>field).__zm_unique;
-    return parseUUID(required, ref, unique, refPath);
+    const sparse = (<any>field).__zm_unique;
+    return parseUUID(required, ref, unique, refPath, sparse);
   }
 
   if (zmAssert.object(field)) {
@@ -122,23 +124,27 @@ function parseField<T>(
 
   if (zmAssert.number(field)) {
     const isUnique = field.__zm_unique ?? false;
+    const isSparse = field.__zm_sparse ?? false;
     return parseNumber(
       field,
       required,
       def as number,
       isUnique,
       refinement as zm.EffectValidator<number>,
+      isSparse
     );
   }
 
   if (zmAssert.string(field)) {
     const isUnique = field.__zm_unique ?? false;
+    const isSparse = field.__zm_sparse ?? false;
     return parseString(
       field,
       required,
       def as string,
       isUnique,
       refinement as zm.EffectValidator<string>,
+      isSparse
     );
   }
 
@@ -152,11 +158,13 @@ function parseField<T>(
 
   if (zmAssert.date(field)) {
     const isUnique = field.__zm_unique ?? false;
+    const isSparse = field.__zm_sparse ?? false;
     return parseDate(
       required,
       def as Date,
       refinement as zm.EffectValidator<Date>,
       isUnique,
+      isSparse
     );
   }
 
@@ -217,6 +225,7 @@ function parseNumber(
   def?: number,
   unique = false,
   validate?: zm.EffectValidator<number>,
+  sparse = false
 ): zm.mNumber {
   const output: zm.mNumber = {
     type: Number,
@@ -225,6 +234,7 @@ function parseNumber(
     max: field.maxValue ?? undefined,
     required,
     unique,
+    sparse
   };
 
   if (validate) output.validate = validate;
@@ -237,6 +247,7 @@ function parseString(
   def?: string,
   unique = false,
   validate?: zm.EffectValidator<string>,
+  sparse = false,
 ): zm.mString {
   const output: zm.mString = {
     type: String,
@@ -245,6 +256,7 @@ function parseString(
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
     unique,
+    sparse
   };
 
   if (validate) output.validate = validate;
@@ -255,6 +267,7 @@ function parseEnum(values: string[], required = true, def?: string): zm.mString 
   return {
     type: String,
     unique: false,
+    sparse: false,
     default: def,
     enum: values,
     required,
@@ -274,12 +287,14 @@ function parseDate(
   def?: Date,
   validate?: zm.EffectValidator<Date>,
   unique = false,
+  sparse = false
 ): zm.mDate {
   const output: zm.mDate = {
     type: Date,
     default: def,
     required,
     unique,
+    sparse
   };
 
   if (validate) output.validate = validate;
@@ -291,11 +306,13 @@ function parseObjectId(
   ref?: string,
   unique = false,
   refPath?: string,
+  sparse = false
 ): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
     unique,
+    sparse
   };
 
   if (ref) output.ref = ref;
@@ -359,11 +376,13 @@ function parseUUID(
   ref?: string,
   unique = false,
   refPath?: string,
+  sparse = false,
 ): zm.mUUID {
   const output: zm.mUUID = {
     type: SchemaTypes.UUID,
     required,
     unique,
+    sparse
   };
   if (ref) output.ref = ref;
   if (refPath) output.refPath = refPath;

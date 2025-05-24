@@ -95,6 +95,7 @@ Full support list can be found in [SUPPORTED.md](./SUPPORTED.md):
 - ✅ ZodAny as SchemaTypes.Mixed
 - ✅ Validation using refinement for String, Number, Date
 - ✅ Unique for String, Number, Date, ObjectId and UUID
+- ✅ Sparse for String, Number, Date, ObjectId and UUID
 
 - ⚠️ Record (Being converted to Map)
 - ⚠️ Unions (Not supported by mongoose, will pick first inner type)
@@ -202,6 +203,24 @@ const zUser = z.object({
 //
 ```
 
+## sparse fields
+
+To make a String, Number or Date sparse, call `.sparse()`:
+
+```typescript
+import { z } from "zod";
+import { extendZod, zodSchema } from "@zodyac/zod-mongoose";
+
+extendZod(z);
+
+const zUser = z.object({
+  email: z.string().sparse(),
+  // with unique
+  // email: z.string()..unique().sparse(),
+});
+
+//
+```
 ## Warnings
 
 ### ZodUnion types

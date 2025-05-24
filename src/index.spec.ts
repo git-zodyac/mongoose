@@ -15,8 +15,8 @@ const EXAMPLE_SCHEMA = z.object({
   age: z.number().min(18).max(100),
   active: z.boolean().default(false),
   access: z.enum(["admin", "user"]).default("user"),
-  unique_num: z.number().unique(),
-  wearable: zUUID().unique(),
+  unique_num: z.number().unique().sparse(),
+  wearable: zUUID().unique().sparse(),
   wearableWithRef: zUUID("Devices").unique(),
   wearableWithPath: zUUID().unique().refPath("device"),
   devices: zUUID().array(),
@@ -35,10 +35,10 @@ const EXAMPLE_SCHEMA = z.object({
     .string()
     .unique()
     .refine((v) => v.length === 10, "Must be a valid phone number"),
-
+  email: z.string().unique().sparse(),
   curator: zId().optional(),
-  unique_id: zId().unique(),
-  unique_date: z.date().unique(),
+  unique_id: zId().unique().sparse(),
+  unique_date: z.date().unique().sparse(),
   nullable_field: z.string().nullable(),
   hashes: z
     .string()
@@ -517,6 +517,33 @@ describe("Validation", () => {
   test("Unique mongoUUID schema", () => {
     expect((<any>schema.obj.wearable).unique).toBe(true);
   });
+
+  test("Sparse string schema", () => {
+    expect((<any>schema.obj.email).sparse).toBe(true);
+    expect((<any>schema.obj.name).sparse).toBe(false);
+  });
+
+  test("Sparse number schema", () => {
+    expect((<any>schema.obj.unique_num).sparse).toBe(true);
+    expect((<any>schema.obj.age).sparse).toBe(false);
+  });
+
+  test("Sparse date schema", () => {
+    expect((<any>schema.obj.unique_date).sparse).toBe(true);
+    expect((<any>schema.obj.createdAt).sparse).toBeFalsy();
+    expect((<any>schema.obj.updatedAt).sparse).toBeFalsy();
+  });
+
+  test("Sparse objectId schema", () => {
+    expect((<any>schema.obj.unique_id).sparse).toBe(true);
+    expect((<any>schema.obj.companyId).sparse).toBeFalsy();
+  });
+
+  test("Sparse mongoUUID schema", () => {
+    expect((<any>schema.obj.wearable).sparse).toBe(true);
+  });
+
+  
 
   test("Nullable field should be nullable", () => {
     expect((<any>schema.obj.nullable_field).required).toBe(false);

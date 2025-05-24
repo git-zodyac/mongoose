@@ -12,6 +12,7 @@ export namespace zm {
 
     ref: (ref: string) => zID;
     unique: (val?: boolean) => zID;
+    sparse: (val?: boolean) => zID;
     refPath: (ref: string) => zID;
   }
 
@@ -22,6 +23,7 @@ export namespace zm {
     __zm_refPath?: string;
 
     unique: (val?: boolean) => zUUID;
+    sparse: (val?: boolean) => zUUID;
     ref: (ref: string) => zUUID;
     refPath: (ref: string) => zUUID;
   }
@@ -38,6 +40,7 @@ export namespace zm {
   export interface mString extends _Field<string> {
     type: StringConstructor;
     unique: boolean;
+    sparse: boolean;
     enum?: string[];
     match?: RegExp;
     minLength?: number;
@@ -47,6 +50,7 @@ export namespace zm {
   export interface mNumber extends _Field<number> {
     type: NumberConstructor;
     unique: boolean;
+    sparse: boolean;
     min?: number;
     max?: number;
   }
@@ -58,11 +62,13 @@ export namespace zm {
   export interface mDate extends _Field<Date> {
     type: DateConstructor;
     unique: boolean;
+    sparse: boolean;
   }
 
   export interface mObjectId extends _Field<Types.ObjectId> {
     type: typeof SchemaTypes.ObjectId;
     unique?: boolean;
+    sparse?: boolean;
     ref?: string;
     refPath?: string;
   }
@@ -70,6 +76,7 @@ export namespace zm {
   export interface mUUID extends _Field<Types.UUID> {
     type: typeof SchemaTypes.UUID;
     unique?: boolean;
+    sparse?: boolean;
     ref?: string;
     refPath?: string;
   }

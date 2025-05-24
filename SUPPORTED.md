@@ -37,6 +37,12 @@ These types and features are fully supported and tested:
   - `Date`,
   - `ObjectId`,
   - `UUID`
+- ✅ Sparse:
+  - `String`,
+  - `Number`,
+  - `Date`,
+  - `ObjectId`,
+  - `UUID`
 
 ## Danger zone
 
