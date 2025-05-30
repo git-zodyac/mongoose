@@ -4,17 +4,23 @@ import { type CustomErrorParams, z } from "zod";
 declare module "zod" {
   interface ZodString {
     unique: (arg?: boolean) => ZodString;
+    sparse: (arg?: boolean) => ZodString;
     __zm_unique: boolean;
+    __zm_sparse: boolean;
   }
 
   interface ZodNumber {
     unique: (arg?: boolean) => ZodNumber;
+    sparse: (arg?: boolean) => ZodNumber;
     __zm_unique: boolean;
+    __zm_sparse: boolean;
   }
 
   interface ZodDate {
     unique: (arg?: boolean) => ZodDate;
+    sparse: (arg?: boolean) => ZodDate;
     __zm_unique: boolean;
+    __zm_sparse: boolean;
   }
 
   interface ZodType<
@@ -38,6 +44,7 @@ let zod_extended = false;
  * @remarks
  * - Overrides `refine` method to `ZodType` that includes additional metadata for validation.
  * - Overrides `unique` method to `ZodString`, `ZodNumber`, and `ZodDate` to mark them as unique.
+ * - Overrides `sparse` method to `ZodString`, `ZodNumber`, and `ZodDate` to mark them as sparse.
  *
  * @example
  * ```typescript
@@ -86,6 +93,11 @@ export function extendZod(z_0: typeof z) {
       (<any>this).__zm_unique = arg;
       return this;
     };
+
+    (<any>type.prototype).sparse = function (arg = true) {
+      (<any>this).__zm_sparse = arg;
+      return this;
+    };
   }
 
   // Assign static names to Zod types
@@ -114,6 +126,7 @@ export function extendZod(z_0: typeof z) {
 
 export type TzmId = ReturnType<typeof createId> & {
   unique: (arg?: boolean) => TzmId;
+  sparse: (arg?: boolean) => TzmId;
   ref: (arg: string) => TzmId;
   refPath: (arg: string) => TzmId;
 };
@@ -146,11 +159,17 @@ export const zId = (ref?: string): TzmId => {
     return this;
   };
 
+  (<any>output).sparse = function (val = true) {
+    (<any>this).__zm_sparse = val;
+    return this;
+  };
+
   return output as TzmId;
 };
 
 export type TzmUUID = ReturnType<typeof createUUID> & {
   unique: (arg?: boolean) => TzmUUID;
+  sparse: (arg?: boolean) => TzmUUID;
   ref: (arg: string) => TzmUUID;
   refPath: (arg: string) => TzmUUID;
 };
@@ -177,6 +196,11 @@ export const zUUID = (ref?: string): TzmUUID => {
 
   (<any>output).unique = function (val = true) {
     (<any>this).__zm_unique = val;
+    return this;
+  };
+
+  (<any>output).sparse = function (val = true) {
+    (<any>this).__zm_sparse = val;
     return this;
   };
 
