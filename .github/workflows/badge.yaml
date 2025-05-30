@@ -32,7 +32,7 @@ jobs:
 
       # Install deps
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       # Run tests
       - name: Test

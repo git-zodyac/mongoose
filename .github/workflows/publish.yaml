@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release-type:
-        description: 'Release type (one of): patch, minor, major, prepatch, preminor, premajor, prerelease'
+        description: "Release type (one of): patch, minor, major, prepatch, preminor, premajor, prerelease"
         required: true
 jobs:
   release:
@@ -20,13 +20,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           registry-url: https://registry.npmjs.org/
-          node-version: '20.x'
-          cache: 'yarn'
+          node-version: "20.x"
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       # Install dependencies (required by Run tests step)
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       # Tests
       - name: Run tests
