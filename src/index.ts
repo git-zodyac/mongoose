@@ -131,7 +131,7 @@ function parseField<T>(
       def as number,
       isUnique,
       refinement as zm.EffectValidator<number>,
-      isSparse
+      isSparse,
     );
   }
 
@@ -144,7 +144,7 @@ function parseField<T>(
       def as string,
       isUnique,
       refinement as zm.EffectValidator<string>,
-      isSparse
+      isSparse,
     );
   }
 
@@ -164,7 +164,7 @@ function parseField<T>(
       def as Date,
       refinement as zm.EffectValidator<Date>,
       isUnique,
-      isSparse
+      isSparse,
     );
   }
 
@@ -225,7 +225,7 @@ function parseNumber(
   def?: number,
   unique = false,
   validate?: zm.EffectValidator<number>,
-  sparse = false
+  sparse = false,
 ): zm.mNumber {
   const output: zm.mNumber = {
     type: Number,
@@ -234,7 +234,7 @@ function parseNumber(
     max: field.maxValue ?? undefined,
     required,
     unique,
-    sparse
+    sparse,
   };
 
   if (validate) output.validate = validate;
@@ -256,7 +256,7 @@ function parseString(
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
     unique,
-    sparse
+    sparse,
   };
 
   if (validate) output.validate = validate;
@@ -287,14 +287,14 @@ function parseDate(
   def?: Date,
   validate?: zm.EffectValidator<Date>,
   unique = false,
-  sparse = false
+  sparse = false,
 ): zm.mDate {
   const output: zm.mDate = {
     type: Date,
     default: def,
     required,
     unique,
-    sparse
+    sparse,
   };
 
   if (validate) output.validate = validate;
@@ -306,13 +306,13 @@ function parseObjectId(
   ref?: string,
   unique = false,
   refPath?: string,
-  sparse = false
+  sparse = false,
 ): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
     required,
     unique,
-    sparse
+    sparse,
   };
 
   if (ref) output.ref = ref;
@@ -352,25 +352,6 @@ function parseMap<T, K>(
   };
 }
 
-function typeConstructor<T>(t: ZodType<T>) {
-  switch (true) {
-    case zmAssert.string(t):
-      return String;
-    case zmAssert.enumerable(t):
-      return String;
-    case zmAssert.uuid(t):
-      return SchemaTypes.UUID;
-    case zmAssert.objectId(t):
-      return SchemaTypes.ObjectId;
-    case zmAssert.number(t):
-      return Number;
-    case zmAssert.date(t):
-      return Date;
-    default:
-      return undefined;
-  }
-}
-
 function parseUUID(
   required = true,
   ref?: string,
@@ -382,7 +363,7 @@ function parseUUID(
     type: SchemaTypes.UUID,
     required,
     unique,
-    sparse
+    sparse,
   };
   if (ref) output.ref = ref;
   if (refPath) output.refPath = refPath;

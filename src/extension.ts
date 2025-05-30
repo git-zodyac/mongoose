@@ -94,7 +94,7 @@ export function extendZod(z_0: typeof z) {
       return this;
     };
 
-      (<any>type.prototype).sparse = function (arg = true) {
+    (<any>type.prototype).sparse = function (arg = true) {
       (<any>this).__zm_sparse = arg;
       return this;
     };
@@ -199,7 +199,7 @@ export const zUUID = (ref?: string): TzmUUID => {
     return this;
   };
 
-   (<any>output).sparse = function (val = true) {
+  (<any>output).sparse = function (val = true) {
     (<any>this).__zm_sparse = val;
     return this;
   };

@@ -15,7 +15,8 @@ const EXAMPLE_SCHEMA = z.object({
   age: z.number().min(18).max(100),
   active: z.boolean().default(false),
   access: z.enum(["admin", "user"]).default("user"),
-  unique_num: z.number().unique().sparse(),
+  unique_num: z.number().unique(),
+  unique_sparse_num: z.number().unique().sparse(),
   wearable: zUUID().unique().sparse(),
   wearableWithRef: zUUID("Devices").unique(),
   wearableWithPath: zUUID().unique().refPath("device"),
@@ -36,8 +37,10 @@ const EXAMPLE_SCHEMA = z.object({
     .unique()
     .refine((v) => v.length === 10, "Must be a valid phone number"),
   email: z.string().unique().sparse(),
+  email_unique: z.string().unique(),
   curator: zId().optional(),
-  unique_id: zId().unique().sparse(),
+  unique_id: zId().unique(),
+  unique_id_sparse: zId().unique().sparse(),
   unique_date: z.date().unique().sparse(),
   nullable_field: z.string().nullable(),
   hashes: z
@@ -93,21 +96,26 @@ describe("ID Helpers", () => {
   test("zId() should represent valid ObjectID", () => {
     const id = new Types.ObjectId();
     const parsed = zId().safeParse(id);
+
     expect(parsed.success).toBe(true);
+    if (!parsed.success) throw new Error("Zod check failed");
     expect(parsed.data).toBe(id);
   });
 
   test("zId() should represent a string in ObjectID format", () => {
     const id = new Types.ObjectId().toString();
     const parsed = zId().safeParse(id);
-    expect(parsed.success).toBe(true);
+
+    if (!parsed.success) throw new Error("Zod check failed");
     expect(parsed.data).toBe(id);
   });
 
   test("zUUID() should represent a valid UUID", () => {
     const id = new Types.UUID();
     const parsed = zUUID().safeParse(id);
+
     expect(parsed.success).toBe(true);
+    if (!parsed.success) throw new Error("Zod check failed");
     expect(parsed.data).toBe(id);
   });
 
@@ -496,10 +504,13 @@ describe("Validation", () => {
   test("Unique string schema", () => {
     expect((<any>schema.obj.phone).unique).toBe(true);
     expect((<any>schema.obj.name).unique).toBe(false);
+    expect((<any>schema.obj.email).unique).toBe(true);
+    expect((<any>schema.obj.email_unique).unique).toBe(true);
   });
 
   test("Unique number schema", () => {
     expect((<any>schema.obj.unique_num).unique).toBe(true);
+    expect((<any>schema.obj.unique_sparse_num).unique).toBe(true);
     expect((<any>schema.obj.age).unique).toBe(false);
   });
 
@@ -511,6 +522,7 @@ describe("Validation", () => {
 
   test("Unique objectId schema", () => {
     expect((<any>schema.obj.unique_id).unique).toBe(true);
+    expect((<any>schema.obj.unique_id_sparse).unique).toBe(true);
     expect((<any>schema.obj.companyId).unique).toBeFalsy();
   });
 
@@ -520,11 +532,13 @@ describe("Validation", () => {
 
   test("Sparse string schema", () => {
     expect((<any>schema.obj.email).sparse).toBe(true);
+    expect((<any>schema.obj.email_unique).sparse).toBe(false);
     expect((<any>schema.obj.name).sparse).toBe(false);
   });
 
   test("Sparse number schema", () => {
-    expect((<any>schema.obj.unique_num).sparse).toBe(true);
+    expect((<any>schema.obj.unique_sparse_num).sparse).toBe(true);
+    expect((<any>schema.obj.unique_num).sparse).toBe(false);
     expect((<any>schema.obj.age).sparse).toBe(false);
   });
 
@@ -535,15 +549,14 @@ describe("Validation", () => {
   });
 
   test("Sparse objectId schema", () => {
-    expect((<any>schema.obj.unique_id).sparse).toBe(true);
+    expect((<any>schema.obj.unique_id_sparse).sparse).toBe(true);
+    expect((<any>schema.obj.unique_id).sparse).toBeFalsy();
     expect((<any>schema.obj.companyId).sparse).toBeFalsy();
   });
 
   test("Sparse mongoUUID schema", () => {
     expect((<any>schema.obj.wearable).sparse).toBe(true);
   });
-
-  
 
   test("Nullable field should be nullable", () => {
     expect((<any>schema.obj.nullable_field).required).toBe(false);
