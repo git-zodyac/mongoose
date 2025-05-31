@@ -221,6 +221,49 @@ const zUser = z.object({
 
 //
 ```
+
+## Optional nested objects
+
+When you have optional nested objects, the entire subdocument becomes optional in Mongoose. This means:
+
+1. **If the object is omitted entirely**: No validation errors occur
+2. **If the object is provided**: All fields within it also become optional (since the parent object is optional)
+
+```typescript
+import { z } from "zod";
+import { extendZod, zodSchema } from "@zodyac/zod-mongoose";
+
+extendZod(z);
+
+const AddressSchema = z.object({
+  street: z.string(),    // normally required
+  city: z.string(),      // normally required
+});
+
+const UserSchema = z.object({
+  name: z.string(),
+  address: AddressSchema.optional(),  // entire address is optional
+});
+
+const User = model("User", zodSchema(UserSchema));
+
+// ✅ Valid: no address provided
+await User.create({ name: "John" });
+
+// ✅ Valid: complete address provided  
+await User.create({ 
+  name: "John", 
+  address: { street: "123 Main St", city: "NYC" }
+});
+
+// ✅ Valid: partial address provided (fields become optional when parent is optional)
+await User.create({ 
+  name: "John", 
+  address: { street: "123 Main St" }  // city is omitted but no error
+});
+```
+
+This behavior aligns with Mongoose's philosophy that fields are optional by default unless explicitly marked as required.
 ## Warnings
 
 ### ZodUnion types
@@ -258,10 +301,10 @@ started:
 
 - Fork the repository
 - Install linter and formatter for VSCode: Biome
-- Install dependencies: `npm i`
+- Install dependencies: `pnpm i`
 - Make changes
-- Run tests: `npm test`
-- Run linter: `npm run lint` (fix with `npm run lint:fix`)
+- Run tests: `pnpm test`
+- Run linter: `pnpm lint` (fix with `pnpm lint:fix`)
 - Commit and push your changes
 - Open a pull request
 

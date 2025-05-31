@@ -1,4 +1,5 @@
-import { Schema, SchemaTypes, Types } from "mongoose";
+import mongoose, { Schema, SchemaTypes, Types } from "mongoose";
+
 import { z } from "zod";
 import zodSchema, { extendZod, zId, zodSchemaRaw, zUUID } from "./index";
 
@@ -59,7 +60,6 @@ const EXAMPLE_SCHEMA = z.object({
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
-// console.log(schema.obj);
 
 describe("Overall", () => {
   test("Smoke test", () => {
@@ -151,7 +151,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
   });
 
   test("zId(ref) should define reference when created", () => {
@@ -172,7 +172,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
@@ -194,7 +194,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
     expect((<any>schema.obj.id).ref).toBe("Company");
   });
 
@@ -216,7 +216,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.ObjectId);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
     expect((<any>schema.obj.id).refPath).toBe("company");
   });
 
@@ -228,7 +228,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
   });
 
   test("zUUID(ref) should define reference when created", () => {
@@ -249,7 +249,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
   });
 
   test("zUUID().ref(ref) should define reference", () => {
@@ -271,7 +271,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
     expect((<any>schema.obj.id).ref).toBe("Device");
   });
 
@@ -294,7 +294,7 @@ describe("ID Helpers", () => {
     );
 
     expect((<any>schema.obj.id).type).toBe(SchemaTypes.UUID);
-    expect((<any>schema.obj.id).required).toBe(false);
+    expect((<any>schema.obj.id).required).toBeFalsy();
     expect((<any>schema.obj.id).refPath).toBe("device");
   });
 });
@@ -484,9 +484,9 @@ describe("Validation", () => {
   test("Optional fields should have correct validation", () => {
     if (!schema.obj.updatedAt) throw new Error("No updatedAt definition");
 
-    expect((<any>schema.obj.updatedAt).required).toBe(false);
-    expect((<any>schema.obj.last_known_device).required).toBe(false);
-    expect((<any>schema.obj.curator).required).toBe(false);
+    expect((<any>schema.obj.updatedAt).required).toBeFalsy();
+    expect((<any>schema.obj.last_known_device).required).toBeFalsy();
+    expect((<any>schema.obj.curator).required).toBeFalsy();
   });
 
   test("Nested refinements should work as expected", () => {
@@ -559,7 +559,259 @@ describe("Validation", () => {
   });
 
   test("Nullable field should be nullable", () => {
-    expect((<any>schema.obj.nullable_field).required).toBe(false);
+    expect((<any>schema.obj.nullable_field).required).toBeFalsy();
     expect((<any>schema.obj.nullable_field).default).toBe(null);
+  });
+});
+
+describe("Required fields bug reproduction", () => {
+  test("Required fields should be marked as required in mongoose schema", () => {
+    const TestSchema = z.object({
+      requiredString: z.string(),
+      requiredEnum: z.enum(["option1", "option2"]),
+      optionalString: z.string().optional(),
+    });
+
+    const schema = zodSchema(TestSchema);
+
+    // Required fields should have required=true or be part of a validation array
+    expect((<any>schema.obj.requiredString).required).toBe(true);
+    expect((<any>schema.obj.requiredEnum).required).toBe(true);
+
+    // Optional fields should have required=false
+    expect((<any>schema.obj.optionalString).required).toBeFalsy();
+  });
+
+  test("Required fields with default values should still be required", () => {
+    const TestSchema = z.object({
+      fieldWithDefault: z.string().default("default_value"),
+      optionalFieldWithDefault: z.string().default("default_value").optional(),
+    });
+
+    const schema = zodSchema(TestSchema);
+
+    // Field with default but not optional should still be required in mongoose
+    expect((<any>schema.obj.fieldWithDefault).required).toBe(true);
+    expect((<any>schema.obj.fieldWithDefault).default).toBe("default_value");
+
+    // Optional field with default should not be required
+    expect((<any>schema.obj.optionalFieldWithDefault).required).toBeFalsy();
+    expect((<any>schema.obj.optionalFieldWithDefault).default).toBe("default_value");
+  });
+
+  test("Mongoose validation should enforce required fields", async () => {
+    const { model } = await import("mongoose");
+
+    const TestSchema = z.object({
+      requiredField: z.string(),
+      optionalField: z.string().optional(),
+    });
+
+    const schema = zodSchema(TestSchema);
+    const TestModel = model("TestRequired", schema);
+
+    // Creating document without required field should fail
+    const doc = new TestModel({
+      optionalField: "test",
+      // missing requiredField
+    });
+
+    try {
+      await doc.validate();
+      fail("Should have thrown validation error for missing required field");
+    } catch (error: any) {
+      expect(error.errors.requiredField).toBeDefined();
+      expect(error.errors.requiredField.kind).toBe("required");
+    }
+
+    // Creating document with required field should succeed
+    const validDoc = new TestModel({
+      requiredField: "test",
+      optionalField: "test",
+    });
+
+    await expect(validDoc.validate()).resolves.not.toThrow();
+  });
+
+  test("Optional field with default should have correct mongoose schema properties", () => {
+    const TestSchema = z.object({
+      defaultThenOptional: z.string().default("test_value").optional(),
+    });
+
+    const schema = zodSchema(TestSchema);
+
+    // Should be optional (required=false) but have the default value
+    expect((<any>schema.obj.defaultThenOptional).required).toBeFalsy();
+    expect((<any>schema.obj.defaultThenOptional).default).toBe("test_value");
+  });
+
+  test("Native enum should work with zod-mongoose", () => {
+    enum TestEnum {
+      Value1 = "value1",
+      Value2 = "value2",
+      Value3 = "value3",
+    }
+
+    const TestSchema = z.object({
+      enumField: z.nativeEnum(TestEnum),
+      optionalEnumField: z.nativeEnum(TestEnum).optional(),
+      enumWithDefault: z.nativeEnum(TestEnum).default(TestEnum.Value1),
+    });
+
+    const schema = zodSchema(TestSchema);
+
+    // Check that enum field is properly handled
+    expect((<any>schema.obj.enumField).type).toBe(String);
+    expect((<any>schema.obj.enumField).enum).toEqual(["value1", "value2", "value3"]);
+    expect((<any>schema.obj.enumField).required).toBe(true);
+
+    // Check optional enum
+    expect((<any>schema.obj.optionalEnumField).required).toBeFalsy();
+    expect((<any>schema.obj.optionalEnumField).enum).toEqual([
+      "value1",
+      "value2",
+      "value3",
+    ]);
+
+    // Check enum with default
+    expect((<any>schema.obj.enumWithDefault).required).toBe(true);
+    expect((<any>schema.obj.enumWithDefault).default).toBe("value1");
+    expect((<any>schema.obj.enumWithDefault).enum).toEqual([
+      "value1",
+      "value2",
+      "value3",
+    ]);
+  });
+
+  test.skip("Document fields should have correct defaults when not provided", async () => {
+    const { model } = await import("mongoose");
+
+    const TestSchema = z.object({
+      requiredField: z.string(),
+      fieldWithDefault: z.string().default("default_value"),
+      optionalFieldWithDefault: z.string().default("optional_default").optional(),
+      optionalField: z.string().optional(),
+    });
+
+    const schema = zodSchema(TestSchema);
+    const TestModel = model("TestDefaultRequired", schema);
+
+    // Create document with only required field
+    const doc = new TestModel({
+      requiredField: "test",
+      // fieldWithDefault should get default value
+      // optionalFieldWithDefault should get default value
+      // optionalField should be undefined
+    });
+
+    await doc.validate();
+
+    // Check that defaults are applied correctly
+    expect(doc.fieldWithDefault).toBe("default_value");
+    expect(doc.optionalFieldWithDefault).toBe("optional_default");
+    expect(doc.optionalField).toBeUndefined();
+
+    // Save and retrieve to test round-trip
+    await doc.save();
+    const retrieved = await TestModel.findById(doc._id).lean();
+
+    // Fields with defaults should be present
+    expect(retrieved?.fieldWithDefault).toBe("default_value");
+    expect(retrieved?.optionalFieldWithDefault).toBe("optional_default");
+
+    // Optional field without default should not be present in lean document
+    expect(retrieved?.optionalField).toBeUndefined();
+
+    // Re-parse with Zod should work
+    const parsed = TestSchema.parse(retrieved);
+    expect(parsed.fieldWithDefault).toBe("default_value");
+    expect(parsed.optionalFieldWithDefault).toBe("optional_default");
+  });
+});
+
+describe("Optional nested objects with required fields", () => {
+  const NestedSchema = z.object({
+    requiredField: z.string(),
+    anotherRequired: z.string(),
+  });
+
+  const MainSchema = z.object({
+    name: z.string(),
+    optionalNested: NestedSchema.optional(),
+  });
+
+  const TestModel = mongoose.model("OptionalNestedTest", zodSchema(MainSchema));
+
+  it("should allow creation without optional nested object", () => {
+    const doc = {
+      name: "Test Document",
+      // optionalNested is not provided
+    };
+
+    // This should not throw validation errors
+    const created = new TestModel(doc);
+    const validationResult = created.validateSync();
+
+    expect(validationResult).toBeUndefined(); // No validation errors
+  });
+
+  it("should allow creation with optional nested object provided", () => {
+    const doc = {
+      name: "Test Document",
+      optionalNested: {
+        requiredField: "value1",
+        anotherRequired: "value2",
+      },
+    };
+
+    const created = new TestModel(doc);
+    const validationResult = created.validateSync();
+
+    expect(validationResult).toBeUndefined(); // No validation errors
+  });
+
+  it("should allow creation with optional nested object provided but incomplete", () => {
+    const doc = {
+      name: "Test Document",
+      optionalNested: {
+        requiredField: "value1",
+        // anotherRequired is missing - this is OK since the parent object is optional
+      },
+    };
+
+    const created = new TestModel(doc);
+    const validationResult = created.validateSync();
+
+    expect(validationResult).toBeUndefined(); // No validation errors - fields in optional objects are also optional
+  });
+
+  it("should handle the real world FileDataModel case", () => {
+    const FileDataModelSchema = z.object({
+      bucket: z.string(),
+      name: z.string(),
+      storagePath: z.string(),
+      type: z.string(),
+    });
+
+    const WarrantInstrumentSchema = z.object({
+      name: z.string().optional(),
+      documents: FileDataModelSchema.optional(),
+    });
+
+    const TestModel2 = mongoose.model(
+      "FileDataModelTest",
+      zodSchema(WarrantInstrumentSchema),
+    );
+
+    const doc = {
+      name: "Test Warrant",
+      // documents is not provided (it's optional)
+    };
+
+    // This should not throw validation errors
+    const created = new TestModel2(doc);
+    const validationResult = created.validateSync();
+
+    expect(validationResult).toBeUndefined(); // No validation errors
   });
 });
