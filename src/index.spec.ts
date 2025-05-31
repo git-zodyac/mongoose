@@ -645,6 +645,36 @@ describe("Required fields bug reproduction", () => {
     expect((<any>schema.obj.defaultThenOptional).default).toBe("test_value");
   });
 
+  test("Native enum should work with zod-mongoose", () => {
+    enum TestEnum {
+      Value1 = "value1",
+      Value2 = "value2",
+      Value3 = "value3",
+    }
+
+    const TestSchema = z.object({
+      enumField: z.nativeEnum(TestEnum),
+      optionalEnumField: z.nativeEnum(TestEnum).optional(),
+      enumWithDefault: z.nativeEnum(TestEnum).default(TestEnum.Value1),
+    });
+
+    const schema = zodSchema(TestSchema);
+    
+    // Check that enum field is properly handled
+    expect((<any>schema.obj.enumField).type).toBe(String);
+    expect((<any>schema.obj.enumField).enum).toEqual(["value1", "value2", "value3"]);
+    expect((<any>schema.obj.enumField).required).toBe(true);
+    
+    // Check optional enum
+    expect((<any>schema.obj.optionalEnumField).required).toBe(false);
+    expect((<any>schema.obj.optionalEnumField).enum).toEqual(["value1", "value2", "value3"]);
+    
+    // Check enum with default
+    expect((<any>schema.obj.enumWithDefault).required).toBe(true);
+    expect((<any>schema.obj.enumWithDefault).default).toBe("value1");
+    expect((<any>schema.obj.enumWithDefault).enum).toEqual(["value1", "value2", "value3"]);
+  });
+
   test.skip("Document fields should have correct defaults when not provided", async () => {
     const { model } = await import("mongoose");
     

@@ -7,6 +7,7 @@ import type {
   ZodEffects,
   ZodEnum,
   ZodMap,
+  ZodNativeEnum,
   ZodNullable,
   ZodNumber,
   ZodObject,
@@ -24,6 +25,7 @@ export interface IAsserts {
   array(f: ZodType<any>): f is ZodArray<any>;
   boolean(f: ZodType<any>): f is ZodBoolean;
   enumerable(f: ZodType<any>): f is ZodEnum<any>;
+  nativeEnum(f: ZodType<any>): f is ZodNativeEnum<any>;
   date(f: ZodType<any>): f is ZodDate;
   def(f: ZodType<any>): f is ZodDefault<any>;
   optional(f: ZodType<any>): f is ZodOptional<any>;
