@@ -6,7 +6,7 @@
     "test": "jest",
     "test:run": "node test.js",
     "test:badges": "jest --coverage && make-coverage-badge --report-path ./artifacts/coverage/coverage-summary.json --output-path ./badges/coverage.svg",
-    "build": "tsup",
+    "build": "rm -rf dist && tsup",
     "lint": "biome check",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit"
