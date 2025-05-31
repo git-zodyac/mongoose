@@ -152,6 +152,10 @@ function parseField<T>(
     return parseEnum(Object.keys(field.Values), required, def as string);
   }
 
+  if (zmAssert.nativeEnum(field)) {
+    return parseEnum(Object.values(field.enum), required, def as string);
+  }
+
   if (zmAssert.boolean(field)) {
     return parseBoolean(required, def as boolean);
   }
