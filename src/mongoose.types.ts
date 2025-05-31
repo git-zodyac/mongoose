@@ -29,7 +29,7 @@ export namespace zm {
   }
 
   export interface _Field<T> {
-    required: boolean;
+    required?: boolean;
     default?: T;
     validate?: {
       validator: (v: T) => boolean;
