@@ -21,16 +21,16 @@ jobs:
         with:
           registry-url: https://registry.npmjs.org/
           node-version: "20.x"
-          cache: "yarn"
-          cache-dependency-path: yarn.lock
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       # Install dependencies (required by Run tests step)
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       # Tests
       - name: Run tests
-        run: yarn test
+        run: pnpm test
 
       # Configure Git
       - name: Git configuration
@@ -76,11 +76,11 @@ jobs:
 
       # Build
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       # Publish version to public repository
       - name: Publish
-        run: yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
+        run: pnpm publish --access public --tag ${{ env.RELEASE_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
