@@ -3,12 +3,13 @@
   "version": "4.1.0",
   "description": "A library that allows you to generate mongoose schemas from zod objects.",
   "scripts": {
-    "test": "jest",
-    "test:run": "node test.js",
-    "test:badges": "jest --coverage && make-coverage-badge --report-path ./artifacts/coverage/coverage-summary.json --output-path ./badges/coverage.svg",
     "build": "rm -rf dist && tsup",
-    "lint": "biome check",
     "lint:fix": "biome check --write .",
+    "lint": "biome check",
+    "prepare": "husky",
+    "test:badges": "jest --coverage && make-coverage-badge --report-path ./artifacts/coverage/coverage-summary.json --output-path ./badges/coverage.svg",
+    "test:run": "node test.js",
+    "test": "jest",
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
@@ -52,7 +53,9 @@
     "@swc/jest": "^0.2.38",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.29",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
+    "lint-staged": "^16.1.0",
     "make-coverage-badge": "^1.2.0",
     "mongoose": "^8.15.1",
     "tsup": "^8.5.0",
@@ -63,5 +66,10 @@
     "mongoose": "^8.0.3",
     "zod": "^3.22.4"
   },
-  "packageManager": "pnpm@10.8.0"
+  "packageManager": "pnpm@10.8.0",
+  "lint-staged": {
+    "*.{js,ts,json,md}": [
+      "biome check --write"
+    ]
+  }
 }
