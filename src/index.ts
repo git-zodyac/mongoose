@@ -80,17 +80,26 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
 }
 
 // Helpers
-function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
+function parseObject<T extends ZodRawShape>(obj: ZodObject<T>, required = true): zm._Schema<T> | any {
   const object: any = {};
+  
   for (const [key, field] of Object.entries(obj.shape)) {
     if (zmAssert.object(field)) {
-      object[key] = parseObject(field);
+      object[key] = parseObject(field, true); // Always parse nested objects as required within their parent
     } else {
       const f = parseField(field);
       if (!f) throw new Error(`Unsupported field type: ${field.constructor}`);
 
       object[key] = f;
     }
+  }
+
+  // If this is an optional nested object, wrap it in a subdocument structure
+  if (!required) {
+    return {
+      type: object,
+      required: false,
+    };
   }
 
   return object;
@@ -119,7 +128,7 @@ function parseField<T>(
   }
 
   if (zmAssert.object(field)) {
-    return parseObject(field);
+    return parseObject(field, required);
   }
 
   if (zmAssert.number(field)) {
