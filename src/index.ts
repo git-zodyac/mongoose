@@ -2,7 +2,9 @@ import { Schema, type SchemaOptions, SchemaTypes } from "mongoose";
 import type { ZodNumber, ZodObject, ZodRawShape, ZodString, ZodType, z } from "zod";
 import zmAssert from "./assertions/assertions.js";
 import type { zm } from "./mongoose.types.js";
-export * from "./extension.js";
+
+// we use named exports to ensure IDEs can auto-import these easily
+export { extendZod, TzmId, zId, TzmUUID, zUUID } from "./extension.js";
 
 /**
  * Converts a Zod schema to a Mongoose schema
