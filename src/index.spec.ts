@@ -92,7 +92,6 @@ describe("Overall", () => {
 });
 
 describe("ID Helpers", () => {
-  // General
   test("zId() should represent valid ObjectID", () => {
     const id = new Types.ObjectId();
     const parsed = zId().safeParse(id);
@@ -574,11 +573,9 @@ describe("Required fields bug reproduction", () => {
 
     const schema = zodSchema(TestSchema);
 
-    // Required fields should have required=true or be part of a validation array
     expect((<any>schema.obj.requiredString).required).toBe(true);
     expect((<any>schema.obj.requiredEnum).required).toBe(true);
 
-    // Optional fields should have required=false
     expect((<any>schema.obj.optionalString).required).toBeFalsy();
   });
 
@@ -590,11 +587,9 @@ describe("Required fields bug reproduction", () => {
 
     const schema = zodSchema(TestSchema);
 
-    // Field with default but not optional should still be required in mongoose
     expect((<any>schema.obj.fieldWithDefault).required).toBe(true);
     expect((<any>schema.obj.fieldWithDefault).default).toBe("default_value");
 
-    // Optional field with default should not be required
     expect((<any>schema.obj.optionalFieldWithDefault).required).toBeFalsy();
     expect((<any>schema.obj.optionalFieldWithDefault).default).toBe("default_value");
   });
@@ -610,10 +605,8 @@ describe("Required fields bug reproduction", () => {
     const schema = zodSchema(TestSchema);
     const TestModel = model("TestRequired", schema);
 
-    // Creating document without required field should fail
     const doc = new TestModel({
       optionalField: "test",
-      // missing requiredField
     });
 
     try {
@@ -624,7 +617,6 @@ describe("Required fields bug reproduction", () => {
       expect(error.errors.requiredField.kind).toBe("required");
     }
 
-    // Creating document with required field should succeed
     const validDoc = new TestModel({
       requiredField: "test",
       optionalField: "test",
@@ -640,7 +632,6 @@ describe("Required fields bug reproduction", () => {
 
     const schema = zodSchema(TestSchema);
 
-    // Should be optional (required=false) but have the default value
     expect((<any>schema.obj.defaultThenOptional).required).toBeFalsy();
     expect((<any>schema.obj.defaultThenOptional).default).toBe("test_value");
   });
@@ -660,12 +651,10 @@ describe("Required fields bug reproduction", () => {
 
     const schema = zodSchema(TestSchema);
 
-    // Check that enum field is properly handled
     expect((<any>schema.obj.enumField).type).toBe(String);
     expect((<any>schema.obj.enumField).enum).toEqual(["value1", "value2", "value3"]);
     expect((<any>schema.obj.enumField).required).toBe(true);
 
-    // Check optional enum
     expect((<any>schema.obj.optionalEnumField).required).toBeFalsy();
     expect((<any>schema.obj.optionalEnumField).enum).toEqual([
       "value1",
@@ -673,7 +662,6 @@ describe("Required fields bug reproduction", () => {
       "value3",
     ]);
 
-    // Check enum with default
     expect((<any>schema.obj.enumWithDefault).required).toBe(true);
     expect((<any>schema.obj.enumWithDefault).default).toBe("value1");
     expect((<any>schema.obj.enumWithDefault).enum).toEqual([
@@ -696,33 +684,24 @@ describe("Required fields bug reproduction", () => {
     const schema = zodSchema(TestSchema);
     const TestModel = model("TestDefaultRequired", schema);
 
-    // Create document with only required field
     const doc = new TestModel({
       requiredField: "test",
-      // fieldWithDefault should get default value
-      // optionalFieldWithDefault should get default value
-      // optionalField should be undefined
     });
 
     await doc.validate();
 
-    // Check that defaults are applied correctly
     expect(doc.fieldWithDefault).toBe("default_value");
     expect(doc.optionalFieldWithDefault).toBe("optional_default");
     expect(doc.optionalField).toBeUndefined();
 
-    // Save and retrieve to test round-trip
     await doc.save();
     const retrieved = await TestModel.findById(doc._id).lean();
 
-    // Fields with defaults should be present
     expect(retrieved?.fieldWithDefault).toBe("default_value");
     expect(retrieved?.optionalFieldWithDefault).toBe("optional_default");
 
-    // Optional field without default should not be present in lean document
     expect(retrieved?.optionalField).toBeUndefined();
 
-    // Re-parse with Zod should work
     const parsed = TestSchema.parse(retrieved);
     expect(parsed.fieldWithDefault).toBe("default_value");
     expect(parsed.optionalFieldWithDefault).toBe("optional_default");
@@ -745,14 +724,12 @@ describe("Optional nested objects with required fields", () => {
   it("should allow creation without optional nested object", () => {
     const doc = {
       name: "Test Document",
-      // optionalNested is not provided
     };
 
-    // This should not throw validation errors
     const created = new TestModel(doc);
     const validationResult = created.validateSync();
 
-    expect(validationResult).toBeUndefined(); // No validation errors
+    expect(validationResult).toBeUndefined();
   });
 
   it("should allow creation with optional nested object provided", () => {
@@ -767,7 +744,7 @@ describe("Optional nested objects with required fields", () => {
     const created = new TestModel(doc);
     const validationResult = created.validateSync();
 
-    expect(validationResult).toBeUndefined(); // No validation errors
+    expect(validationResult).toBeUndefined();
   });
 
   it("should allow creation with optional nested object provided but incomplete", () => {
@@ -775,14 +752,13 @@ describe("Optional nested objects with required fields", () => {
       name: "Test Document",
       optionalNested: {
         requiredField: "value1",
-        // anotherRequired is missing - this is OK since the parent object is optional
       },
     };
 
     const created = new TestModel(doc);
     const validationResult = created.validateSync();
 
-    expect(validationResult).toBeUndefined(); // No validation errors - fields in optional objects are also optional
+    expect(validationResult).toBeUndefined();
   });
 
   it("should handle the real world FileDataModel case", () => {
@@ -805,13 +781,65 @@ describe("Optional nested objects with required fields", () => {
 
     const doc = {
       name: "Test Warrant",
-      // documents is not provided (it's optional)
     };
 
-    // This should not throw validation errors
     const created = new TestModel2(doc);
     const validationResult = created.validateSync();
 
-    expect(validationResult).toBeUndefined(); // No validation errors
+    expect(validationResult).toBeUndefined();
+  });
+
+  it("should allow Zod parsing of plain objects with optional nested objects", () => {
+    const NestedBankInfoSchema = z.object({
+      accountOwner: z.string(),
+      city: z.string(),
+      country: z.string(),
+    });
+
+    const StakeholderSchema = z.object({
+      name: z.string(),
+      intlBankInfo: NestedBankInfoSchema.optional(),
+      usBankInfo: NestedBankInfoSchema.optional(),
+    });
+
+    const mongoDocumentLike = {
+      name: "Test Stakeholder",
+    };
+
+    const parsed = StakeholderSchema.parse(mongoDocumentLike);
+
+    expect(parsed.name).toBe("Test Stakeholder");
+    expect(parsed.intlBankInfo).toBeUndefined();
+    expect(parsed.usBankInfo).toBeUndefined();
+  });
+
+  it("should fail Zod parsing when optional nested objects have empty objects with undefined required fields", () => {
+    const NestedBankInfoSchema = z.object({
+      accountOwner: z.string(),
+      city: z.string(),
+      country: z.string(),
+    });
+
+    const StakeholderSchema = z.object({
+      name: z.string(),
+      intlBankInfo: NestedBankInfoSchema.optional(),
+      usBankInfo: NestedBankInfoSchema.optional(),
+    });
+
+    const problematicDocument = {
+      name: "Test Stakeholder",
+      intlBankInfo: {
+        accountOwner: undefined,
+        city: undefined,
+        country: undefined,
+      },
+      usBankInfo: {
+        accountOwner: undefined,
+        city: undefined,
+        country: undefined,
+      },
+    };
+
+    expect(() => StakeholderSchema.parse(problematicDocument)).toThrow();
   });
 });
