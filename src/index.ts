@@ -214,6 +214,10 @@ function parseField<T>(
       const validation = (<any>effect).__zm_validation as zm.EffectValidator<T>;
       return parseField(field._def.schema, required, def, validation);
     }
+
+    if (effect.type === "preprocess" || effect.type === "transform") {
+      return parseField(field._def.schema, required, def, refinement);
+    }
   }
 
   return null;
