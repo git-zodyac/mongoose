@@ -258,10 +258,10 @@ started:
 
 - Fork the repository
 - Install linter and formatter for VSCode: Biome
-- Install dependencies: `pnpm i`
+- Install dependencies: `npm i`
 - Make changes
-- Run tests: `pnpm test`
-- Run linter: `pnpm lint` (fix with `pnpm lint:fix`)
+- Run tests: `npm test`
+- Run linter: `npm run lint` (fix with `npm run lint:fix`)
 - Commit and push your changes
 - Open a pull request
 

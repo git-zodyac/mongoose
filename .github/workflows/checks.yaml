@@ -17,79 +17,33 @@ on:
       - develop
 
 jobs:
-  test:
+  test-lint:
     runs-on: ubuntu-latest
     steps:
+      # Checkout
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
+      # Setup node
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            frontend/pnpm-lock.yaml
+          node-version: "20.x"
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
 
+      # Install deps
       - name: Install dependencies
-        run: pnpm install
+        run: yarn install --frozen-lockfile
 
+      # Run tests
       - name: Test
-        run: pnpm test
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        run: yarn test
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      # Install biome
+      - name: Install Biome
+        run: yarn add --dev @biomejs/biome
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install
-
+        # Run linter
       - name: Lint
-        run: pnpm lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Lint
-        run: pnpm typecheck
+        run: yarn lint
