@@ -17,9 +17,9 @@ This package provides a function to convert
 ```bash
 npm i @zodyac/zod-mongoose
 
-pnpm add @zodyac/zod-mongoose
-
 yarn add @zodyac/zod-mongoose
+
+pnpm add @zodyac/zod-mongoose
 
 bun add @zodyac/zod-mongoose
 ```
