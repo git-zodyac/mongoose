@@ -80,17 +80,17 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
 }
 
 // Helpers
-function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
+function parseObject<T extends ZodRawShape>(
+  obj: ZodObject<T>,
+  required = true,
+): zm._Schema<T> | any {
   const object: any = {};
-  for (const [key, field] of Object.entries(obj.shape)) {
-    if (zmAssert.object(field)) {
-      object[key] = parseObject(field);
-    } else {
-      const f = parseField(field);
-      if (!f) throw new Error(`Unsupported field type: ${field.constructor}`);
 
-      object[key] = f;
-    }
+  for (const [key, field] of Object.entries(obj.shape)) {
+    const f = parseField(field, required);
+    if (!f) throw new Error(`Unsupported field type: ${field.constructor}`);
+
+    object[key] = f;
   }
 
   return object;
@@ -119,7 +119,7 @@ function parseField<T>(
   }
 
   if (zmAssert.object(field)) {
-    return parseObject(field);
+    return parseObject(field, required);
   }
 
   if (zmAssert.number(field)) {
@@ -150,6 +150,10 @@ function parseField<T>(
 
   if (zmAssert.enumerable(field)) {
     return parseEnum(Object.keys(field.Values), required, def as string);
+  }
+
+  if (zmAssert.nativeEnum(field)) {
+    return parseEnum(Object.values(field.enum), required, def as string);
   }
 
   if (zmAssert.boolean(field)) {
@@ -232,11 +236,11 @@ function parseNumber(
     default: def,
     min: field.minValue ?? undefined,
     max: field.maxValue ?? undefined,
-    required,
     unique,
     sparse,
   };
 
+  if (required) output.required = true;
   if (validate) output.validate = validate;
   return output;
 }
@@ -252,34 +256,38 @@ function parseString(
   const output: zm.mString = {
     type: String,
     default: def,
-    required,
     minLength: field.minLength ?? undefined,
     maxLength: field.maxLength ?? undefined,
     unique,
     sparse,
   };
 
+  if (required) output.required = true;
   if (validate) output.validate = validate;
   return output;
 }
 
 function parseEnum(values: string[], required = true, def?: string): zm.mString {
-  return {
+  const output: zm.mString = {
     type: String,
     unique: false,
     sparse: false,
     default: def,
     enum: values,
-    required,
   };
+
+  if (required) output.required = true;
+  return output;
 }
 
 function parseBoolean(required = true, def?: boolean): zm.mBoolean {
-  return {
+  const output: zm.mBoolean = {
     type: Boolean,
     default: def,
-    required,
   };
+
+  if (required) output.required = true;
+  return output;
 }
 
 function parseDate(
@@ -292,11 +300,11 @@ function parseDate(
   const output: zm.mDate = {
     type: Date,
     default: def,
-    required,
     unique,
     sparse,
   };
 
+  if (required) output.required = true;
   if (validate) output.validate = validate;
   return output;
 }
@@ -310,11 +318,11 @@ function parseObjectId(
 ): zm.mObjectId {
   const output: zm.mObjectId = {
     type: SchemaTypes.ObjectId,
-    required,
     unique,
     sparse,
   };
 
+  if (required) output.required = true;
   if (ref) output.ref = ref;
   if (refPath) output.refPath = refPath;
   return output;
@@ -328,11 +336,13 @@ function parseArray<T>(
 ): zm.mArray<T> {
   const innerType = parseField(element);
   if (!innerType) throw new Error("Unsupported array type");
-  return {
+  const output: zm.mArray<T> = {
     type: [innerType as zm._Field<T>],
     default: def,
-    required,
   };
+
+  if (required) output.required = true;
+  return output;
 }
 
 function parseMap<T, K>(
@@ -344,12 +354,14 @@ function parseMap<T, K>(
   const pointer = parseField(valueType);
   if (!pointer) throw new Error("Unsupported map value type");
 
-  return {
+  const output: zm.mMap<T, K> = {
     type: Map,
     of: pointer as zm._Field<K>,
     default: def,
-    required,
   };
+
+  if (required) output.required = true;
+  return output;
 }
 
 function parseUUID(
@@ -361,21 +373,24 @@ function parseUUID(
 ): zm.mUUID {
   const output: zm.mUUID = {
     type: SchemaTypes.UUID,
-    required,
     unique,
     sparse,
   };
+
+  if (required) output.required = true;
   if (ref) output.ref = ref;
   if (refPath) output.refPath = refPath;
   return output;
 }
 
 function parseMixed(required = true, def?: unknown): zm.mMixed<unknown> {
-  return {
+  const output: zm.mMixed<unknown> = {
     type: SchemaTypes.Mixed,
     default: def,
-    required,
   };
+
+  if (required) output.required = true;
+  return output;
 }
 
 export default zodSchema;
