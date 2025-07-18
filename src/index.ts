@@ -1,5 +1,6 @@
 import { Schema, type SchemaOptions, SchemaTypes } from "mongoose";
 import type { ZodNumber, ZodObject, ZodRawShape, ZodString, ZodType, z } from "zod";
+
 import zmAssert from "./assertions/assertions.js";
 import type { zm } from "./mongoose.types.js";
 export * from "./extension.js";
@@ -99,7 +100,7 @@ function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
 function parseField<T>(
   field: ZodType<T>,
   required = true,
-  def?: T,
+  def?: zm.mDefault<T>,
   refinement?: zm.EffectValidator<T>,
 ): zm.mField | null {
   if (zmAssert.objectId(field)) {
@@ -128,7 +129,7 @@ function parseField<T>(
     return parseNumber(
       field,
       required,
-      def as number,
+      def as zm.mDefault<number>,
       isUnique,
       refinement as zm.EffectValidator<number>,
       isSparse,
@@ -141,7 +142,7 @@ function parseField<T>(
     return parseString(
       field,
       required,
-      def as string,
+      def as zm.mDefault<string>,
       isUnique,
       refinement as zm.EffectValidator<string>,
       isSparse,
@@ -149,11 +150,11 @@ function parseField<T>(
   }
 
   if (zmAssert.enumerable(field)) {
-    return parseEnum(Object.keys(field.Values), required, def as string);
+    return parseEnum(Object.keys(field.Values), required, def as zm.mDefault<string>);
   }
 
   if (zmAssert.boolean(field)) {
-    return parseBoolean(required, def as boolean);
+    return parseBoolean(required, def as zm.mDefault<boolean>);
   }
 
   if (zmAssert.date(field)) {
@@ -161,7 +162,7 @@ function parseField<T>(
     const isSparse = field.__zm_sparse ?? false;
     return parseDate(
       required,
-      def as Date,
+      def as zm.mDefault<Date>,
       refinement as zm.EffectValidator<Date>,
       isUnique,
       isSparse,
@@ -172,12 +173,12 @@ function parseField<T>(
     return parseArray(
       required,
       field.element,
-      def as T extends Array<infer K> ? K[] : never,
+      def as zm.mDefault<T extends Array<infer K> ? K[] : never>,
     );
   }
 
   if (zmAssert.def(field)) {
-    return parseField(field._def.innerType, required, field._def.defaultValue());
+    return parseField(field._def.innerType, required, field._def.defaultValue);
   }
 
   if (zmAssert.optional(field)) {
@@ -185,7 +186,11 @@ function parseField<T>(
   }
 
   if (zmAssert.nullable(field)) {
-    return parseField(field._def.innerType, false, def || null);
+    return parseField(
+      field._def.innerType,
+      false,
+      (typeof def !== "undefined" ? def : () => null) as zm.mDefault<null>,
+    );
   }
 
   if (zmAssert.union(field)) {
@@ -200,9 +205,11 @@ function parseField<T>(
     return parseMap(
       required,
       field.valueSchema,
-      def as Map<
-        zm.UnwrapZodType<typeof field.keySchema>,
-        zm.UnwrapZodType<typeof field.valueSchema>
+      def as zm.mDefault<
+        Map<
+          zm.UnwrapZodType<typeof field.keySchema>,
+          zm.UnwrapZodType<typeof field.valueSchema>
+        >
       >,
     );
   }
@@ -222,7 +229,7 @@ function parseField<T>(
 function parseNumber(
   field: ZodNumber,
   required = true,
-  def?: number,
+  def?: zm.mDefault<number>,
   unique = false,
   validate?: zm.EffectValidator<number>,
   sparse = false,
@@ -244,7 +251,7 @@ function parseNumber(
 function parseString(
   field: ZodString,
   required = true,
-  def?: string,
+  def?: zm.mDefault<string>,
   unique = false,
   validate?: zm.EffectValidator<string>,
   sparse = false,
@@ -263,7 +270,11 @@ function parseString(
   return output;
 }
 
-function parseEnum(values: string[], required = true, def?: string): zm.mString {
+function parseEnum(
+  values: string[],
+  required = true,
+  def?: zm.mDefault<string>,
+): zm.mString {
   return {
     type: String,
     unique: false,
@@ -274,7 +285,7 @@ function parseEnum(values: string[], required = true, def?: string): zm.mString 
   };
 }
 
-function parseBoolean(required = true, def?: boolean): zm.mBoolean {
+function parseBoolean(required = true, def?: zm.mDefault<boolean>): zm.mBoolean {
   return {
     type: Boolean,
     default: def,
@@ -284,7 +295,7 @@ function parseBoolean(required = true, def?: boolean): zm.mBoolean {
 
 function parseDate(
   required = true,
-  def?: Date,
+  def?: zm.mDefault<Date>,
   validate?: zm.EffectValidator<Date>,
   unique = false,
   sparse = false,
@@ -324,7 +335,7 @@ function parseArray<T>(
   // biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
   required = true,
   element: ZodType<T>,
-  def?: T[],
+  def?: zm.mDefault<T[]>,
 ): zm.mArray<T> {
   const innerType = parseField(element);
   if (!innerType) throw new Error("Unsupported array type");
@@ -339,7 +350,7 @@ function parseMap<T, K>(
   // biome-ignore lint/style/useDefaultParameterLast: Consistency with other functions
   required = true,
   valueType: ZodType<K>,
-  def?: Map<NoInfer<T>, K>,
+  def?: zm.mDefault<Map<NoInfer<T>, K>>,
 ): zm.mMap<T, K> {
   const pointer = parseField(valueType);
   if (!pointer) throw new Error("Unsupported map value type");
@@ -373,7 +384,7 @@ function parseUUID(
 function parseMixed(required = true, def?: unknown): zm.mMixed<unknown> {
   return {
     type: SchemaTypes.Mixed,
-    default: def,
+    default: def as unknown as any,
     required,
   };
 }

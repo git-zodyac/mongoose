@@ -27,10 +27,12 @@ export namespace zm {
     ref: (ref: string) => zUUID;
     refPath: (ref: string) => zUUID;
   }
+  export type mDefault<T> = () => T;
 
   export interface _Field<T> {
     required: boolean;
-    default?: T;
+    // Default value can either be the direct value, or it's getter function
+    default?: mDefault<T>;
     validate?: {
       validator: (v: T) => boolean;
       message?: string;
