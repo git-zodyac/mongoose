@@ -437,19 +437,19 @@ describe("Supported types", () => {
   test("Array should have correct default value", () => {
     if (!schema.obj.filters) throw new Error("No roles definition");
 
-    expect((<any>schema.obj.filters).default).toEqual(["default_filter"]);
+    expect((<any>schema.obj.filters).default()).toEqual(["default_filter"]);
   });
 
   test("Boolean field should have correct default value", () => {
     if (!schema.obj.active) throw new Error("No active definition");
 
-    expect((<any>schema.obj.active).default).toBe(false);
+    expect((<any>schema.obj.active).default()).toBe(false);
   });
 
   test("Enum field should have correct default value", () => {
     if (!schema.obj.access) throw new Error("No access definition");
 
-    expect((<any>schema.obj.access).default).toBe("user");
+    expect((<any>schema.obj.access).default()).toBe("user");
   });
 
   test("ZodAny field should have correct type - Mixed", () => {
@@ -560,7 +560,7 @@ describe("Validation", () => {
 
   test("Nullable field should be nullable", () => {
     expect((<any>schema.obj.nullable_field).required).toBe(false);
-    expect((<any>schema.obj.nullable_field).default).toBe(null);
+    expect((<any>schema.obj.nullable_field).default()).toBe(null);
   });
 });
 
