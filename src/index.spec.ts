@@ -563,3 +563,41 @@ describe("Validation", () => {
     expect((<any>schema.obj.nullable_field).default).toBe(null);
   });
 });
+
+describe("Preprocess and transform effects", () => {
+  test("Preprocess effects", () => {
+    const zToNumberPreprocess = z.object({
+      value: z.coerce.number(),
+    });
+    const zToDatePreprocess = z.object({
+      value: z.preprocess((val) => {
+        if (typeof val === "string" && !Number.isNaN(Date.parse(val))) {
+          return new Date(val);
+        }
+        return val;
+      }, z.date()),
+    });
+
+    const toNumberPreprocessSchema = zodSchema(zToNumberPreprocess);
+    const toDatePreprocessSchema = zodSchema(zToDatePreprocess);
+
+    expect((<any>toNumberPreprocessSchema.obj.value).type).toBe(Number);
+    expect((<any>toDatePreprocessSchema.obj.value).type).toBe(Date);
+  });
+
+  test("Transform effects", () => {
+    const zUpcaseTransform = z.object({
+      name: z.string().transform((val) => val.toUpperCase()),
+    });
+
+    const zNumberAddTransform = z.object({
+      count: z.number().transform((val) => val + 1),
+    });
+
+    const upcaseTransformSchema = zodSchema(zUpcaseTransform);
+    const numberAddTransformSchema = zodSchema(zNumberAddTransform);
+
+    expect((<any>upcaseTransformSchema.obj.name).type).toBe(String);
+    expect((<any>numberAddTransformSchema.obj.count).type).toBe(Number);
+  });
+});
