@@ -558,6 +558,32 @@ describe("Validation", () => {
     expect((<any>schema.obj.wearable).sparse).toBe(true);
   });
 
+  test("Optional nested objects should have correct required field", () => {
+    const NestedSchema = z.object({
+      name: z.string(),
+      value: z.number(),
+    });
+
+    const MainSchema = z.object({
+      title: z.string(),
+      optionalNested: NestedSchema.optional(),
+      requiredNested: NestedSchema,
+    });
+
+    const schema = zodSchema(MainSchema);
+
+    // El objeto opcional debe tener required: false
+    expect((<any>schema.obj.optionalNested).required).toBe(false);
+    expect((<any>schema.obj.optionalNested).type).toBeDefined();
+    expect((<any>schema.obj.optionalNested).type.name.type).toBe(String);
+    expect((<any>schema.obj.optionalNested).type.value.type).toBe(Number);
+
+    // El objeto requerido NO debe tener la propiedad required en el nivel superior
+    expect((<any>schema.obj.requiredNested).required).toBeUndefined();
+    expect((<any>schema.obj.requiredNested).name.type).toBe(String);
+    expect((<any>schema.obj.requiredNested).value.type).toBe(Number);
+  });
+
   test("Nullable field should be nullable", () => {
     expect((<any>schema.obj.nullable_field).required).toBe(false);
     expect((<any>schema.obj.nullable_field).default()).toBe(null);

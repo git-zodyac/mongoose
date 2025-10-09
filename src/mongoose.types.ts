@@ -106,6 +106,10 @@ export namespace zm {
     of?: zm._Field<K>;
   }
 
+  export interface mSubdocument<T> extends _Field<T> {
+    type: _Schema<T>;
+  }
+
   export type mField =
     // Primitives
     | mString
@@ -119,7 +123,8 @@ export namespace zm {
     | mMixed<unknown>
     | mArray<unknown>
     | _Schema<unknown>
-    | mMap<unknown, unknown>;
+    | mMap<unknown, unknown>
+    | mSubdocument<unknown>;
 
   export type _Schema<T> = SchemaDefinition & {
     [K in keyof T]: (_Field<T[K]> & SchemaTypeOptions<T[K]>) | _Schema<T[K]>;
