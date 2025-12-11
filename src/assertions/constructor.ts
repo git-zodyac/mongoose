@@ -6,6 +6,7 @@ import type {
   ZodDefault,
   ZodEffects,
   ZodEnum,
+  ZodNativeEnum,
   ZodMap,
   ZodNullable,
   ZodNumber,
@@ -48,6 +49,10 @@ export const zmAssert: IAsserts = {
 
   enumerable(f: ZodType<any>): f is ZodEnum<any> {
     return f.constructor.name === "ZodEnum";
+  },
+
+  nativeEnumerable(f: ZodType<any>): f is ZodNativeEnum<any> {
+    return f.constructor.name === "ZodNativeEnum";
   },
 
   date(f: ZodType<any>): f is ZodDate {
