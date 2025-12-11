@@ -1,4 +1,4 @@
-import { Types, isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { type CustomErrorParams, z } from "zod";
 
 declare module "zod" {
@@ -25,11 +25,11 @@ declare module "zod" {
 
   interface ZodType<
     Output = any,
+    // biome-ignore lint/correctness/noUnusedVariables: For future use
     Def extends z.ZodTypeDef = z.ZodTypeDef,
+    // biome-ignore lint/correctness/noUnusedVariables: For future use
     Input = Output,
-  > {
-    // For future use
-  }
+  > {}
 }
 
 let zod_extended = false;
@@ -71,7 +71,7 @@ export function extendZod(z_0: typeof z) {
   ) {
     const zEffect = _refine.bind(this)(check, opts);
 
-    let message: string | undefined | ((v: T) => string | undefined) = undefined;
+    let message: string | undefined | ((v: T) => string | undefined);
     if (opts) {
       if (typeof opts === "string") message = opts;
       else if ("message" in opts) message = opts.message;

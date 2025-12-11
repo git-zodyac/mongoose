@@ -1,7 +1,8 @@
 name: Test and lint
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize]
     paths:
       - "src/**"
     branches:
@@ -27,6 +28,10 @@ jobs:
       # Install deps
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      # Run tests
+      - name: Test
+        run: yarn test
 
       # Run linter
       - name: Lint

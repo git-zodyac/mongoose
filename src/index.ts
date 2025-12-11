@@ -3,6 +3,7 @@ import type { ZodNumber, ZodObject, ZodRawShape, ZodString, ZodType, z } from "z
 
 import zmAssert from "./assertions/assertions.js";
 import type { zm } from "./mongoose.types.js";
+
 export * from "./extension.js";
 
 /**
@@ -161,7 +162,11 @@ function parseField<T>(
   }
 
   if (zmAssert.nativeEnumerable(field)) {
-    return parseEnum(Object.values(field._def.values), required, def as zm.mDefault<string>);
+    return parseEnum(
+      Object.values(field._def.values),
+      required,
+      def as zm.mDefault<string>,
+    );
   }
 
   if (zmAssert.boolean(field)) {
@@ -347,7 +352,6 @@ function parseObjectId(
 }
 
 function parseArray<T>(
-  // biome-ignore lint/style/useDefaultParameterLast: Should be consistent with other functions
   required = true,
   element: ZodType<T>,
   def?: zm.mDefault<T[]>,
@@ -362,7 +366,6 @@ function parseArray<T>(
 }
 
 function parseMap<T, K>(
-  // biome-ignore lint/style/useDefaultParameterLast: Consistency with other functions
   required = true,
   valueType: ZodType<K>,
   def?: zm.mDefault<Map<NoInfer<T>, K>>,
