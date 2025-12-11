@@ -4,6 +4,12 @@ import zodSchema, { extendZod, zId, zodSchemaRaw, zUUID } from "./index";
 
 extendZod(z);
 
+enum StatusEnum {
+  ONLINE = "online",
+  OFFLINE = "offline",
+  IDLE = "idle",
+}
+
 const SUBDOCUMENT_SCHEMA = z.object({
   title: z.string().min(3).max(255),
   content: z.string().min(3).max(255),
@@ -56,6 +62,8 @@ const EXAMPLE_SCHEMA = z.object({
   notes: z.any(),
   devices_last_seen: z.record(zUUID(), z.date()),
   last_contacted: z.record(zId(), z.date()),
+
+  status: z.nativeEnum(StatusEnum).default(StatusEnum.ONLINE),
 });
 
 const schema = zodSchema(EXAMPLE_SCHEMA);
@@ -382,6 +390,13 @@ describe("Supported types", () => {
     expect((<any>schema.obj.access).enum).toEqual(["admin", "user"]);
   });
 
+  test("Native enum should have correct type", () => {
+    if (!schema.obj.status) throw new Error("No status definition");
+
+    expect((<any>schema.obj.status).type).toBe(String);
+    expect((<any>schema.obj.status).enum).toEqual(Object.values(StatusEnum));
+  });
+
   test("Object should have correct type", () => {
     if (!schema.obj.address) throw new Error("No address definition");
 
@@ -450,6 +465,12 @@ describe("Supported types", () => {
     if (!schema.obj.access) throw new Error("No access definition");
 
     expect((<any>schema.obj.access).default()).toBe("user");
+  });
+
+  test("Native enum field should have correct default value", () => {
+    if (!schema.obj.status) throw new Error("No status definition");
+
+    expect((<any>schema.obj.status).default()).toBe(StatusEnum.ONLINE);
   });
 
   test("ZodAny field should have correct type - Mixed", () => {

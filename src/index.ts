@@ -160,6 +160,10 @@ function parseField<T>(
     return parseEnum(Object.keys(field.Values), required, def as zm.mDefault<string>);
   }
 
+  if (zmAssert.nativeEnumerable(field)) {
+    return parseEnum(Object.values(field._def.values), required, def as zm.mDefault<string>);
+  }
+
   if (zmAssert.boolean(field)) {
     return parseBoolean(required, def as zm.mDefault<boolean>);
   }
