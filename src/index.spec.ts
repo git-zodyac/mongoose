@@ -440,6 +440,26 @@ describe("Supported types", () => {
     expect((<any>schema.obj.last_contacted).of.type).toBe(Date);
   });
 
+  test("partial should work", () => {
+    const zObj = z
+      .object({
+        name: z.string().min(5),
+        age: z.number().min(10),
+        email: z.string().email(),
+        optedIn: z.boolean().default(false),
+        tel: z.string().optional(),
+      })
+      .partial();
+
+    const schema = zodSchema(zObj);
+
+    expect((<any>schema.obj.name).required).toBe(false);
+    expect((<any>schema.obj.age).required).toBe(false);
+    expect((<any>schema.obj.email).required).toBe(false);
+    expect((<any>schema.obj.optedIn).required).toBe(false);
+    expect((<any>schema.obj.tel).required).toBe(false);
+  });
+
   test("Array of objects should have correct type", () => {
     if (!schema.obj.posts) throw new Error("No posts definition");
 
