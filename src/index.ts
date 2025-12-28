@@ -82,7 +82,10 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
 }
 
 // Helpers
-function parseObject<T extends ZodRawShape>(obj: ZodObject<T>, required = true): zm._Schema<T> | zm.mSubdocument<T> {
+function parseObject<T extends ZodRawShape>(
+  obj: ZodObject<T>,
+  required = true,
+): zm._Schema<T> | zm.mSubdocument<T> {
   const object: any = {};
   for (const [key, field] of Object.entries(obj.shape)) {
     if (zmAssert.object(field)) {
