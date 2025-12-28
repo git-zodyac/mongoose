@@ -33,6 +33,10 @@ jobs:
       - name: Test
         run: yarn test
 
+      # Run typecheck
+      - name: Typecheck
+        run: yarn typecheck
+
       # Run linter
       - name: Lint
         run: yarn lint

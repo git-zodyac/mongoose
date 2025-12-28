@@ -31,3 +31,7 @@ jobs:
       # Run linter
       - name: Lint
         run: yarn lint
+
+      # Run typecheck
+      - name: Typecheck
+        run: yarn typecheck

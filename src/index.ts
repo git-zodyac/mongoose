@@ -82,6 +82,19 @@ export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._S
 }
 
 // Helpers
+function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T>;
+function parseObject<T extends ZodRawShape>(
+  obj: ZodObject<T>,
+  required: true,
+): zm._Schema<T>;
+function parseObject<T extends ZodRawShape>(
+  obj: ZodObject<T>,
+  required: false,
+): zm.mSubdocument<T>;
+function parseObject<T extends ZodRawShape>(
+  obj: ZodObject<T>,
+  required: boolean,
+): zm._Schema<T> | zm.mSubdocument<T>;
 function parseObject<T extends ZodRawShape>(
   obj: ZodObject<T>,
   required = true,
@@ -190,8 +203,8 @@ function parseField<T>(
 
   if (zmAssert.array(field)) {
     return parseArray(
-      required,
       field.element,
+      required,
       def as zm.mDefault<T extends Array<infer K> ? K[] : never>,
     );
   }
@@ -222,8 +235,8 @@ function parseField<T>(
 
   if (zmAssert.mapOrRecord(field)) {
     return parseMap(
-      required,
       field.valueSchema,
+      required,
       def as zm.mDefault<
         Map<
           zm.UnwrapZodType<typeof field.keySchema>,
@@ -355,8 +368,8 @@ function parseObjectId(
 }
 
 function parseArray<T>(
-  required = true,
   element: ZodType<T>,
+  required = true,
   def?: zm.mDefault<T[]>,
 ): zm.mArray<T> {
   const innerType = parseField(element);
@@ -369,8 +382,8 @@ function parseArray<T>(
 }
 
 function parseMap<T, K>(
-  required = true,
   valueType: ZodType<K>,
+  required = true,
   def?: zm.mDefault<Map<NoInfer<T>, K>>,
 ): zm.mMap<T, K> {
   const pointer = parseField(valueType);

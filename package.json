@@ -8,7 +8,8 @@
     "test:badges": "jest --coverage && make-coverage-badge --report-path ./artifacts/coverage/coverage-summary.json --output-path ./badges/coverage.svg",
     "build": "tsup",
     "lint": "biome check",
-    "lint:fix": "biome check --write ."
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
   "main": "./dist/index.cjs",
