@@ -41,7 +41,7 @@ export function zodSchema<T extends ZodRawShape>(
   schema: ZodObject<T>,
   options?: SchemaOptions<any>, // TODO: Fix any
 ): Schema<z.infer<typeof schema>> {
-  const definition = parseObject(schema);
+  const definition = parseObject(schema, true);
   return new Schema<z.infer<typeof schema>>(definition, options);
 }
 
@@ -78,21 +78,28 @@ export function zodSchema<T extends ZodRawShape>(
  * const userModel = model('User', schema);
  */
 export function zodSchemaRaw<T extends ZodRawShape>(schema: ZodObject<T>): zm._Schema<T> {
-  return parseObject(schema);
+  return parseObject(schema, true) as zm._Schema<T>;
 }
 
 // Helpers
-function parseObject<T extends ZodRawShape>(obj: ZodObject<T>): zm._Schema<T> {
+function parseObject<T extends ZodRawShape>(obj: ZodObject<T>, required = true): zm._Schema<T> | zm.mSubdocument<T> {
   const object: any = {};
   for (const [key, field] of Object.entries(obj.shape)) {
     if (zmAssert.object(field)) {
-      object[key] = parseObject(field);
+      object[key] = parseObject(field, true);
     } else {
       const f = parseField(field);
       if (!f) throw new Error(`Unsupported field type: ${field.constructor}`);
 
       object[key] = f;
     }
+  }
+
+  if (!required) {
+    return {
+      type: object,
+      required: false,
+    } as zm.mSubdocument<T>;
   }
 
   return object;
@@ -121,7 +128,7 @@ function parseField<T>(
   }
 
   if (zmAssert.object(field)) {
-    return parseObject(field);
+    return parseObject(field, required);
   }
 
   if (zmAssert.number(field)) {
