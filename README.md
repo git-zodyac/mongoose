@@ -3,7 +3,7 @@
 ![CI](https://github.com/parziva-1/zod-mongoose/actions/workflows/ci.yml/badge.svg)
 ![NPM Version](https://img.shields.io/npm/v/%40parziva-1%2Fzod-mongoose)
 ![License](https://img.shields.io/npm/l/%40parziva-1%2Fzod-mongoose)
-![Test coverage](./badges/coverage.svg)
+![Test coverage](https://raw.githubusercontent.com/parziva-1/zod-mongoose/main/badges/coverage.svg)
 
 Convert [Zod](https://www.npmjs.com/package/zod) object schemas into
 [Mongoose](https://www.npmjs.com/package/mongoose) schemas, keeping a single
@@ -32,13 +32,26 @@ yarn add @parziva-1/zod-mongoose
 bun add @parziva-1/zod-mongoose
 ```
 
-Peer dependencies: `zod@^4.0.0` and `mongoose@^8.20.2 || ^9.0.0`.
+Peer dependencies: `zod@^4.3.0` and `mongoose@^8.20.2 || ^9.0.0`. The package
+is ESM-only and requires Node >= 20 (also works on Bun).
+
+### Compatibility
+
+| `@parziva-1/zod-mongoose` | Mongoose | Zod | Runtime |
+| --- | --- | --- | --- |
+| 5.x | 8.20.2 - 8.x (tested: 8.20.2, 8.24.8) | 4.3.0 - 4.x (tested: 4.3.x, 4.4.0, 4.6.7) | Node >= 20 (CI on Node 22), Bun 1.4 (smoke tested) |
+| 5.x | 9.0.0 - 9.x (tested: 9.0.0, 9.11.4) | 4.3.0 - 4.x (tested: 4.3.x, 4.4.0, 4.6.7) | Node >= 20 (CI on Node 22), Bun 1.4 (smoke tested) |
+
+CI runs the full suite against the latest Mongoose 8 and the latest Mongoose 9
+on every push and PR. Zod 4.0 - 4.2 is **not** supported: `.unique()` /
+`.sparse()` metadata is lost when chained with other builders on those
+versions.
 
 ## Migrating from `@zodyac/zod-mongoose`
 
 - **Package name**: import from `@parziva-1/zod-mongoose` instead of
   `@zodyac/zod-mongoose`.
-- **Zod version**: you must be on `zod@^4.0.0`. Zod v3 is not supported at
+- **Zod version**: you must be on `zod@^4.3.0`. Zod v3 is not supported at
   all - stay on the upstream package (or this fork's `4.x` line, if you need
   an intermediate step) until your schemas are migrated.
 - **Module format**: this package is **ESM-only** starting with v5 (no CJS
@@ -82,17 +95,27 @@ Then convert it to a Mongoose schema and connect a model:
 
 ```typescript
 import { zodSchema } from "@parziva-1/zod-mongoose";
-import { model } from "mongoose";
+import { type HydratedDocument, type InferSchemaType, model } from "mongoose";
 
 const schema = zodSchema(zUser);
 const userModel = model("User", schema);
+
+// Mongoose 8 and 9 typings work on the generated schema
+type UserDoc = HydratedDocument<InferSchemaType<typeof schema>>;
 ```
 
 That's it - now use your Mongoose model as usual:
 
 ```typescript
-userModel.find({ name: "John" });
+await userModel.find({ name: "John" });
 ```
+
+The snippets above are exercised by `src/readme.spec.ts`, so they are verified
+on every CI run.
+
+For PATCH-style request bodies, `toPartialUpdateSchema(zUser)` returns a Zod
+object where every field is optional and `.default()` values are stripped, so
+omitted fields do not silently reset to their defaults.
 
 > [!NOTE]
 > `extendZod` should be called once for the whole application.
@@ -300,6 +323,11 @@ possible.
 ### ZodRecord
 
 `ZodRecord` is converted to `Map`. Prefer `z.map()` directly when possible.
+
+## Documentation
+
+- [SUPPORTED.md](./SUPPORTED.md) - supported types and features, design notes
+- [CHANGELOG.md](./CHANGELOG.md) - release history
 
 ## Contributing
 

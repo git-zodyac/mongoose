@@ -12,7 +12,14 @@ on:
 
 jobs:
   ci:
+    name: ci (mongoose ${{ matrix.mongoose }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # `8` and `9` resolve to the newest 8.x / 9.x at run time. The lockfile
+        # pins one version for local dev; the matrix overrides it below.
+        mongoose: ["8", "9"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,6 +38,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Mongoose ${{ matrix.mongoose }} (latest)
+        run: npm install --no-save --ignore-scripts mongoose@${{ matrix.mongoose }}
+
+      - name: Show resolved versions
+        run: npm ls mongoose zod
 
       - name: Lint
         run: npm run lint

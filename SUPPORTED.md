@@ -8,6 +8,13 @@ Please note that this list is not exhaustive and may change in the future. It
 contains the features that are encountered the most, are uncontroversial and are
 being tested.
 
+## Tested versions
+
+The suite runs in CI against the latest Mongoose 8.x and 9.x (locally verified:
+8.20.2, 8.24.8, 9.0.0, 9.11.4) and Zod 4.3.0 through 4.6.7. Zod < 4.3 is not
+supported (field metadata used by `.unique()` / `.sparse()` is dropped there).
+See the compatibility table in [README.md](./README.md#compatibility).
+
 ## Full support
 
 These types and features are fully supported and tested:
